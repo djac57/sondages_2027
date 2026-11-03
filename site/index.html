@@ -161,8 +161,8 @@ footer b{color:var(--ink-soft);font-weight:600}
       <h1 class="title"><small>Observatoire électoral · sondages contre marchés</small>Présidentielle&nbsp;2027</h1>
     </div>
     <div class="asof">Proba implicite des sondages <b>(modèle 539)</b><br>
-      contre <b>marché Polymarket</b> · 21 oct. 2026<br>
-      1er tour le 18 avril 2027</div>
+      contre <b>marché Polymarket</b> · <b id="asofMkt">—</b><br>
+      sondages <span id="asofPolls">—</span> · 1er tour le <span id="tour1">—</span></div>
   </div>
 </header>
 
@@ -179,94 +179,73 @@ footer b{color:var(--ink-soft);font-weight:600}
   </div>
 </section>
 
-<section aria-label="D'où viennent les mouvements">
-  <p class="eyebrow">Qui prend à qui</p>
-  <h2 class="phead">D'où viennent les mouvements <span>— marché, 30 jours</span></h2>
+<section aria-label="Mouvements du marché sur 30 jours">
+  <p class="eyebrow">Qui monte, qui descend</p>
+  <h2 class="phead">Mouvements du marché <span>— proba de victoire, 30 derniers jours</span></h2>
   <div class="hr"></div>
-  <div id="flows"></div>
+  <div id="movers"></div>
 </section>
 
-<footer>Sondages : agrégat des instituts · Marché : Polymarket · 21 oct. 2026 · modèle <b>539</b></footer>
+<footer><b>Sondages</b> : moyenne des <span id="npolls">—</span> derniers sondages du 1er tour (Wikipédia). <b>Marché</b> : Polymarket, proba de victoire (event <i>Next French Presidential Election</i>), tendance = variation sur 30 j. <b>Proba implicite</b> : simulation Monte-Carlo (200 000 tirages) du 1er tour (parts sondagières + incertitude) puis du 2nd tour (duels, avec plafond « front républicain » pour l'extrême et faiblesse de duel de LFI — hypothèses assumées). On compare sondages et marché sans recopier personne. Mise à jour automatique quotidienne · modèle <b>539</b> · code ouvert sur GitHub.</footer>
 </div>
 <div id="tip" role="status" aria-live="polite"></div>
 
+<script src="data.js"></script>
 <script>
 const BL={gr:'--b-gr',rose:'--b-rose',c:'--b-c',eco:'--b-eco',d:'--b-d',ed:'--b-ed',autres:'--ink-faint'};
-const col=k=>'var('+BL[k]+')';
-/* 21 oct. 2026. poll = part 1er tour (agrégat) ; reach = P(2nd tour) ; impl = P(victoire) implicite (MC) ;
-   mkt = P(victoire) marché ; d30 = delta marché 30 j */
-const C=[
- {id:'lepen',  full:'Marine Le Pen',    pty:'Rassemblement national', bloc:'ed', poll:34.2,reach:99.5,impl:83.0,mkt:46.4,d30:8.3},
- {id:'philippe',full:'Édouard Philippe', pty:'Horizons',              bloc:'c', poll:17.5,reach:42.6,impl:9.3, mkt:18.5,d30:-5.0},
- {id:'lisnard',full:'David Lisnard',     pty:'Nouvelle Énergie',       bloc:'d', poll:3.0, reach:0.5, impl:0.1, mkt:11.7,d30:4.9},
- {id:'melenchon',full:'Jean-Luc Mélenchon',pty:'La France insoumise',  bloc:'gr',poll:16.2,reach:32.2,impl:0.5, mkt:10.5,d30:-2.0},
- {id:'glucksmann',full:'Raphaël Glucksmann',pty:'Place publique · PS', bloc:'rose',poll:11.0,reach:8.4,impl:2.0,mkt:4.9,d30:3.2},
- {id:'hollande',full:'François Hollande', pty:'Parti socialiste',       bloc:'rose',poll:7.0,reach:2.2,impl:0.4,mkt:2.1,d30:-3.5},
- {id:'attal',  full:'Gabriel Attal',     pty:'Renaissance',            bloc:'c', poll:11.6,reach:9.9, impl:3.3, mkt:1.1,d30:-1.1},
- {id:'retailleau',full:'Bruno Retailleau',pty:'Les Républicains',      bloc:'d', poll:8.4, reach:3.6, impl:1.0, mkt:0.7,d30:-0.8},
- {id:'zemmour',full:'Éric Zemmour',      pty:'Reconquête',             bloc:'ed',poll:4.0, reach:0.7, impl:0.2, mkt:0.7,d30:-0.4},
-];
-const MAX=85, pos=v=>v/MAX*100, f=v=>v>=10?String(Math.round(v)):v.toFixed(1);
+const col=k=>'var('+(BL[k]||'--ink-faint')+')';
+const D=window.DATA||{candidates:[],movers:[],scale:60,asof:{},tour1:'',n_polls:'—'};
+const C=D.candidates||[];
+const MAX=D.scale||60, pos=v=>Math.max(0,Math.min(100,v/MAX*100)), f=v=>v>=10?String(Math.round(v)):v.toFixed(1);
+const pct=v=>v==null?'n/d':f(v);
+/* en-tête & pied dynamiques */
+document.getElementById('asofMkt').textContent=(D.asof&&D.asof.market)||'—';
+document.getElementById('asofPolls').textContent=(D.asof&&D.asof.polls)||'—';
+document.getElementById('tour1').textContent=D.tour1||'—';
+const npEl=document.getElementById('npolls'); if(npEl)npEl.textContent=D.n_polls||'—';
 
 /* ===== Dumbbell : proba implicite (sondages) vs marché ===== */
 const ax=document.getElementById('axticks');
-[0,20,40,60,80].forEach(t=>{const s=document.createElement('span');s.textContent=t;s.style.left=pos(t)+'%';ax.appendChild(s);});
+const ticks=[];for(let t=0;t<=MAX;t+=20)ticks.push(t);
+ticks.forEach(t=>{const s=document.createElement('span');s.textContent=t;s.style.left=pos(t)+'%';ax.appendChild(s);});
 const dumb=document.getElementById('dumb');
 C.forEach(c=>{
   const r=document.createElement('div'); r.className='drow';
-  const lo=Math.min(c.impl,c.mkt), hi=Math.max(c.impl,c.mkt);
+  const hasI=c.impl!=null, hasM=c.mkt!=null;
+  const lo=(hasI&&hasM)?Math.min(c.impl,c.mkt):null, hi=(hasI&&hasM)?Math.max(c.impl,c.mkt):null;
   const tA=c.d30>0.3?`<span class="up">▲&nbsp;+${c.d30.toFixed(1)}</span>`
     :c.d30<-0.3?`<span class="down">▼&nbsp;${c.d30.toFixed(1)}</span>`:`<span class="flat">–</span>`;
+  const conn=(lo!=null)?`<div class="dconn" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)}%;background:${col(c.bloc)}"></div>`:'';
+  const dotI=hasI?`<div class="ddot poll" style="left:${pos(c.impl)}%;border-color:${col(c.bloc)}"></div>`:'';
+  const dotM=hasM?`<div class="ddot mkt" style="left:${pos(c.mkt)}%;background:${col(c.bloc)}"></div>`:'';
   r.innerHTML=`<div class="dlab"><div class="nm"><i style="background:${col(c.bloc)}"></i>${c.full}</div>
       <div class="pty">${c.pty}</div></div>
     <div class="dbar">
-      ${[20,40,60,80].map(t=>`<div class="grid" style="left:${pos(t)}%"></div>`).join('')}
-      <div class="dconn" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)}%;background:${col(c.bloc)}"></div>
-      <div class="ddot poll" style="left:${pos(c.impl)}%;border-color:${col(c.bloc)}"></div>
-      <div class="ddot mkt" style="left:${pos(c.mkt)}%;background:${col(c.bloc)}"></div>
+      ${ticks.slice(1).map(t=>`<div class="grid" style="left:${pos(t)}%"></div>`).join('')}
+      ${conn}${dotI}${dotM}
     </div>
-    <div class="dvals"><span class="p">${f(c.impl)}</span><span class="a">→</span><span class="m">${f(c.mkt)}</span></div>
+    <div class="dvals"><span class="p">${pct(c.impl)}</span><span class="a">→</span><span class="m">${pct(c.mkt)}</span></div>
     <div class="dtrend">${tA}</div>`;
   dumb.appendChild(r);
-  bindTip(r,`<b>${c.full}</b> — ${c.pty}<br>
-    1er tour : <span class="sp">${c.poll.toFixed(1)} %</span> · P(2nd tour) : <span class="sp">${c.reach.toFixed(0)} %</span><br>
-    Proba victoire — sondages : <b>${c.impl.toFixed(1)} %</b> · marché : <span class="tp">${c.mkt.toFixed(1)} %</span><br>
+  const l1=(c.poll!=null?`1er tour : <span class="sp">${c.poll.toFixed(1)} %</span>`:'<span class="sp">non sondé</span>')
+    +(c.reach!=null?` · P(2nd tour) : <span class="sp">${c.reach.toFixed(0)} %</span>`:'');
+  bindTip(r,`<b>${c.full}</b> — ${c.pty}<br>${l1}<br>
+    Proba victoire — sondages : <b>${c.impl!=null?c.impl.toFixed(1)+' %':'n/d'}</b> · marché : <span class="tp">${c.mkt!=null?c.mkt.toFixed(1)+' %':'n/d'}</span><br>
     Tendance marché 30 j : ${c.d30>0?'+':''}${c.d30.toFixed(1)} pt`);
 });
 
-/* ===== Barres empilées par candidat : gagnants (← sources) ET perdants (→ destinations) ===== */
-const BLOCOF={'Le Pen':'ed','Philippe':'c','Lisnard':'d','Mélenchon':'gr','Glucksmann':'rose',
-  'Hollande':'rose','Attal':'c','Retailleau':'d','Zemmour':'ed','Abstention':'autres'};
-const DECOMP=[
- {who:'Le Pen',    d: 8.3, parts:[['Abstention',5.0],['Mélenchon',2.0],['Philippe',0.9],['Zemmour',0.4]]},
- {who:'Lisnard',   d: 4.9, parts:[['Philippe',4.1],['Retailleau',0.8]]},
- {who:'Glucksmann',d: 3.2, parts:[['Hollande',3.2]]},
- {who:'Philippe',  d:-5.0, parts:[['Lisnard',4.1],['Le Pen',0.9]]},
- {who:'Hollande',  d:-3.5, parts:[['Glucksmann',3.2],['Abstention',0.3]]},
- {who:'Mélenchon', d:-2.0, parts:[['Le Pen',2.0]]},
- {who:'Attal',     d:-1.1, parts:[['Abstention',1.1]]},
- {who:'Retailleau',d:-0.8, parts:[['Lisnard',0.8]]},
- {who:'Zemmour',   d:-0.4, parts:[['Le Pen',0.4]]},
-];
-const SHORT={'Le Pen':'LP','Philippe':'EP','Zemmour':'EZ','Mélenchon':'JLM','Glucksmann':'RG','Hollande':'FH','Attal':'GA','Retailleau':'BR','Lisnard':'DL','Abstention':'Abs'};
-const flowsEl=document.getElementById('flows');
-const maxGain=Math.max(...DECOMP.filter(x=>x.d>0).map(x=>x.d));
-const maxLoss=Math.max(...DECOMP.filter(x=>x.d<0).map(x=>-x.d));
-const unit=100/(maxGain+maxLoss), zero=maxLoss*unit;
-DECOMP.forEach(it=>{
+/* ===== Mouvements du marché 30 j — données Polymarket, aucun transfert inventé ===== */
+const moversEl=document.getElementById('movers');
+const M=D.movers||[];
+const maxAbs=Math.max(1,...M.map(m=>Math.abs(m.d30)));
+M.forEach(m=>{
   const row=document.createElement('div');row.className='flowrow';
-  const tot=it.parts.reduce((a,p)=>a+p[1],0), gain=it.d>0, w=Math.abs(it.d)*unit, left=gain?zero:zero-w;
-  const segs=it.parts.map(([s,v])=>`<div class="fseg" data-tip="${v.toFixed(1)} pt ${gain?'←':'→'} ${s}" data-full="${s}" style="width:${v/tot*100}%;background:${col(BLOCOF[s]||'autres')}">${s}</div>`).join('');
-  row.innerHTML=`<div class="glab"><i style="background:${col(BLOCOF[it.who])}"></i>${it.who}<span class="gd" style="color:var(--${gain?'up':'down'})">${gain?'+':''}${it.d.toFixed(1)} pt</span></div>
-    <div class="fbar" style="--zero:${zero}%"><div class="fstack ${gain?'pos':'neg'}" style="left:${left}%;width:${w}%">${segs}</div></div>`;
-  flowsEl.appendChild(row);
-  row.querySelectorAll('.fseg').forEach(s=>bindTip(s,s.dataset.tip));
+  const up=m.d30>=0, w=Math.abs(m.d30)/maxAbs*50;
+  const bar=`<div class="fbar" style="--zero:50%"><div class="fstack" style="left:${up?50:50-w}%;width:${w}%;background:${col(m.bloc)};border-radius:2px"></div></div>`;
+  row.innerHTML=`<div class="glab"><i style="background:${col(m.bloc)}"></i>${m.full}<span class="gd" style="color:var(--${up?'up':'down'})">${up?'+':''}${m.d30.toFixed(1)} pt</span></div>${bar}`;
+  moversEl.appendChild(row);
+  bindTip(row,`<b>${m.full}</b><br>Proba de victoire (marché) : ${up?'+':''}${m.d30.toFixed(1)} pt sur 30 j`);
 });
-function fitLabels(){flowsEl.querySelectorAll('.fseg').forEach(el=>{const n=el.getAttribute('data-full');el.textContent=n;
-  if(el.scrollWidth-el.clientWidth>1){el.textContent=SHORT[n]||n; if(el.scrollWidth-el.clientWidth>1)el.textContent='';}});}
-fitLabels();
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitLabels);
-addEventListener('resize',fitLabels);
 
 /* ===== infobulle & thème ===== */
 const tip=document.getElementById('tip');

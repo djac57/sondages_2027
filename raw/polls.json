@@ -1,0 +1,32 @@
+{
+ "fetched": "2026-11-03",
+ "n_polls": 16,
+ "polls": {
+  "arthaud": 0.67,
+  "melenchon": 17.34,
+  "roussel": 2.03,
+  "tondelier": 2.53,
+  "glucksmann": 13.53,
+  "attal": 8.17,
+  "philippe": 14.36,
+  "lisnard": 7.1,
+  "retailleau": 7.12,
+  "dupont-aignan": 1.91,
+  "le pen": 34.09,
+  "zemmour": 4.38
+ },
+ "n": {
+  "arthaud": 15,
+  "melenchon": 16,
+  "roussel": 16,
+  "tondelier": 16,
+  "glucksmann": 15,
+  "attal": 9,
+  "philippe": 11,
+  "lisnard": 5,
+  "retailleau": 16,
+  "dupont-aignan": 16,
+  "le pen": 16,
+  "zemmour": 16
+ }
+}

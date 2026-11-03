@@ -1,0 +1,70 @@
+{
+ "fetched": "2026-11-03",
+ "volume": 164406601.534843,
+ "candidates": {
+  "le pen": {
+   "mkt": 40.15,
+   "d30": -4.9
+  },
+  "bardella": {
+   "mkt": 2.05,
+   "d30": 1.5
+  },
+  "zemmour": {
+   "mkt": 0.8,
+   "d30": -0.15
+  },
+  "philippe": {
+   "mkt": 11.5,
+   "d30": -6.0
+  },
+  "lisnard": {
+   "mkt": 15.6,
+   "d30": 6.35
+  },
+  "attal": {
+   "mkt": 0.6,
+   "d30": -1.65
+  },
+  "retailleau": {
+   "mkt": 0.85,
+   "d30": -0.6
+  },
+  "hollande": {
+   "mkt": 2.05,
+   "d30": -2.8
+  },
+  "glucksmann": {
+   "mkt": 2.95,
+   "d30": 1.3
+  },
+  "melenchon": {
+   "mkt": 12.5,
+   "d30": 0.0
+  },
+  "tondelier": {
+   "mkt": 0.05,
+   "d30": -0.1
+  },
+  "roussel": {
+   "mkt": 0.05,
+   "d30": 0.0
+  },
+  "villepin": {
+   "mkt": 1.2,
+   "d30": 0.85
+  },
+  "dupont-aignan": {
+   "mkt": 0.05,
+   "d30": 0.0
+  },
+  "baroin": {
+   "mkt": 0.85,
+   "d30": 0.8
+  },
+  "lagarde": {
+   "mkt": 7.2,
+   "d30": 6.65
+  }
+ }
+}
