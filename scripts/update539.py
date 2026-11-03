@@ -47,6 +47,76 @@ SIG_FR = 4.0          # incertitude 1er tour (points), horizon long
 N_SIM  = 200000
 POLL_RECENT = 16      # nb de sondages récents retenus pour l'agrégat (table triée récent->ancien)
 
+# étiquettes courtes pour la matrice de transferts
+NAMES = {
+ 'le pen':('Le Pen','LP'),'bardella':('Bardella','JB'),'zemmour':('Zemmour','EZ'),
+ 'dupont-aignan':('Dupont-Aignan','NDA'),'philippe':('Philippe','EP'),'attal':('Attal','GA'),
+ 'lagarde':('Lagarde','CL'),'lisnard':('Lisnard','DL'),'retailleau':('Retailleau','BR'),
+ 'baroin':('Baroin','FB'),'villepin':('Villepin','DdV'),'melenchon':('Mélenchon','JLM'),
+ 'roussel':('Roussel','FR'),'arthaud':('Arthaud','NA'),'glucksmann':('Glucksmann','RG'),
+ 'hollande':('Hollande','FH'),'tondelier':('Tondelier','MT'),'abstention':('Abstention','Abs'),
+}
+# affinité (porosité) entre blocs — symétrique. Plus haut = transfert plus plausible.
+AFF_BLOC = {
+ ('ed','ed'):0.9,('d','d'):0.9,('c','c'):0.9,('rose','rose'):0.9,('gr','gr'):0.9,('eco','eco'):0.9,
+ ('ed','d'):0.50,('d','c'):0.60,('c','rose'):0.50,('rose','gr'):0.50,('rose','eco'):0.70,('gr','eco'):0.60,
+ ('ed','gr'):0.35,  # gaucho-lepénisme (remonté, correction d'époque)
+ ('ed','c'):0.20,('d','rose'):0.15,('c','gr'):0.15,('d','gr'):0.10,('d','eco'):0.15,
+ ('c','eco'):0.30,('ed','eco'):0.05,('ed','rose'):0.05,('gr','ed'):0.35,
+}
+AFF_ABST = 0.40                       # porosité candidat <-> Abstention (mobilisation/démobilisation)
+BAN = {('lisnard','hollande')}        # paires interdites (correction d'époque) ; symétrique
+def aff_bloc(a, b):
+    return AFF_BLOC.get((a, b)) or AFF_BLOC.get((b, a)) or 0.10
+
+def affinity_flows(cands):
+    """Décompose les mouvements NETS du marché (d30) en transferts plausibles,
+    par flux guidé par affinités (Sinkhorn), transbordement via le nœud Abstention.
+    Limite assumée : seuls les flux NETS sont identifiables (pas les bruts)."""
+    import numpy as np
+    losers  = [c for c in cands if c["d30"] <= -0.3]
+    winners = [c for c in cands if c["d30"] >=  0.3]
+    if not losers or not winners:
+        return []
+    S  = sum(-c["d30"] for c in losers)
+    Dm = sum( c["d30"] for c in winners)
+    src = [(c["id"], c["bloc"], -c["d30"]) for c in losers]
+    snk = [(c["id"], c["bloc"],  c["d30"]) for c in winners]
+    if Dm - S > 1e-6: src.append(("abstention", "autres", Dm - S))
+    if S - Dm > 1e-6: snk.append(("abstention", "autres", S - Dm))
+    a = np.array([x[2] for x in src]); b = np.array([x[2] for x in snk])
+    K = np.zeros((len(src), len(snk)))
+    for i,(si,sb,_) in enumerate(src):
+        for j,(tj,tb,_) in enumerate(snk):
+            if si == tj:                      # pas de flux vers soi-même
+                continue
+            if (si,tj) in BAN or (tj,si) in BAN:
+                continue
+            K[i,j] = AFF_ABST if (si=="abstention" or tj=="abstention") else aff_bloc(sb,tb)
+    u = np.ones(len(src)); v = np.ones(len(snk)); eps=1e-9
+    for _ in range(800):
+        u = a / (K @ v + eps)
+        v = b / (K.T @ u + eps)
+    T = u[:,None] * K * v[None,:]
+    def lab(k): return {"name":NAMES[k][0],"short":NAMES[k][1]}
+    out=[]
+    for j,(tj,tb,_) in enumerate(snk):           # gagnants : d'où vient le gain
+        if tj=="abstention": continue
+        parts=sorted([(src[i][0],src[i][1],T[i,j]) for i in range(len(src)) if T[i,j]>=0.25],
+                     key=lambda p:-p[2])[:4]
+        if parts:
+            out.append({"who":NAMES[tj][0],"bloc":tb,"d":round(float(b[j]),1),"gain":True,
+                        "parts":[{**lab(i),"bloc":ib,"v":round(float(v_),1)} for i,ib,v_ in parts]})
+    for i,(si,sb,_) in enumerate(src):           # perdants : où est parti le poids
+        if si=="abstention": continue
+        parts=sorted([(snk[j][0],snk[j][1],T[i,j]) for j in range(len(snk)) if T[i,j]>=0.25],
+                     key=lambda p:-p[2])[:4]
+        if parts:
+            out.append({"who":NAMES[si][0],"bloc":sb,"d":round(float(-a[i]),1),"gain":False,
+                        "parts":[{**lab(j),"bloc":jb,"v":round(float(v_),1)} for j,jb,v_ in parts]})
+    out.sort(key=lambda e:-e["d"])
+    return out
+
 def _strip(s):
     return ''.join(c for c in unicodedata.normalize('NFD', str(s)) if unicodedata.category(c) != 'Mn').lower()
 def keyof(name):
@@ -176,8 +246,7 @@ def build():
             "poll": im.get("first", poll), "reach": im.get("reach"),
             "impl": im.get("impl"), "mkt": mkt, "d30": round(d30, 1),
         })
-    movers = sorted([c for c in cands if c["mkt"] is not None],
-                    key=lambda c: -abs(c["d30"]))[:8]
+    decomp = affinity_flows(cands)
     vals = [c["impl"] for c in cands if c["impl"]] + [c["mkt"] for c in cands if c["mkt"]]
     scale = max(40, int(np.ceil(max(vals) / 10.0) * 10)) if vals else 50
 
@@ -193,7 +262,7 @@ def build():
         "tour1": "18 avril 2027",
         "scale": scale,
         "candidates": cands,
-        "movers": [{"id": c["id"], "full": c["full"], "bloc": c["bloc"], "d30": c["d30"]} for c in movers],
+        "decomp": decomp,
     }
     os.makedirs(SITE, exist_ok=True)
     with open(os.path.join(SITE, "data.js"), "w", encoding="utf-8") as f:

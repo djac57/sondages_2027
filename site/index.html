@@ -179,14 +179,15 @@ footer b{color:var(--ink-soft);font-weight:600}
   </div>
 </section>
 
-<section aria-label="Mouvements du marché sur 30 jours">
-  <p class="eyebrow">Qui monte, qui descend</p>
-  <h2 class="phead">Mouvements du marché <span>— proba de victoire, 30 derniers jours</span></h2>
+<section aria-label="Où vont les voix">
+  <p class="eyebrow">Qui prend à qui</p>
+  <h2 class="phead">Où vont les voix <span>— décomposition des mouvements du marché, 30 jours</span></h2>
   <div class="hr"></div>
-  <div id="movers"></div>
+  <div id="flows"></div>
+  <p class="fnote">Flux <b>nets</b> estimés : le gain de chaque candidat est réparti entre ceux qui reculent et l'<b>abstention</b>, selon un graphe d'<b>affinités</b> entre électorats (seules les paires plausibles portent du flux). Un report brut masqué par un gain net (ex. Le Pen cède à Lisnard tout en gagnant ailleurs) n'est pas identifiable.</p>
 </section>
 
-<footer><b>Sondages</b> : moyenne des <span id="npolls">—</span> derniers sondages du 1er tour (Wikipédia). <b>Marché</b> : Polymarket, proba de victoire (event <i>Next French Presidential Election</i>), tendance = variation sur 30 j. <b>Proba implicite</b> : simulation Monte-Carlo (200 000 tirages) du 1er tour (parts sondagières + incertitude) puis du 2nd tour (duels, avec plafond « front républicain » pour l'extrême et faiblesse de duel de LFI — hypothèses assumées). On compare sondages et marché sans recopier personne. Mise à jour automatique quotidienne · modèle <b>539</b> · code ouvert sur GitHub.</footer>
+<footer><b>Sondages</b> : moyenne des <span id="npolls">—</span> derniers sondages du 1er tour (Wikipédia). <b>Marché</b> : Polymarket, proba de victoire (event <i>Next French Presidential Election</i>), tendance = variation sur 30 j. <b>Proba implicite</b> : simulation Monte-Carlo (200 000 tirages) du 1er tour (parts sondagières + incertitude) puis du 2nd tour (duels, avec plafond « front républicain » pour l'extrême et faiblesse de duel de LFI — hypothèses assumées). <b>Transferts</b> : flux nets estimés par un graphe d'affinités entre électorats (modèle). On compare sondages et marché sans recopier personne. Mise à jour automatique quotidienne · modèle <b>539</b> · code ouvert sur GitHub.</footer>
 </div>
 <div id="tip" role="status" aria-live="polite"></div>
 
@@ -234,18 +235,26 @@ C.forEach(c=>{
     Tendance marché 30 j : ${c.d30>0?'+':''}${c.d30.toFixed(1)} pt`);
 });
 
-/* ===== Mouvements du marché 30 j — données Polymarket, aucun transfert inventé ===== */
-const moversEl=document.getElementById('movers');
-const M=D.movers||[];
-const maxAbs=Math.max(1,...M.map(m=>Math.abs(m.d30)));
-M.forEach(m=>{
+/* ===== Où vont les voix : décomposition par affinités (window.DATA.decomp) ===== */
+const flowsEl=document.getElementById('flows');
+const DEC=D.decomp||[];
+const maxGain=Math.max(0.1,...DEC.filter(x=>x.gain).map(x=>x.d));
+const maxLoss=Math.max(0.1,...DEC.filter(x=>!x.gain).map(x=>-x.d));
+const unit=100/(maxGain+maxLoss), zero=maxLoss*unit;
+DEC.forEach(it=>{
   const row=document.createElement('div');row.className='flowrow';
-  const up=m.d30>=0, w=Math.abs(m.d30)/maxAbs*50;
-  const bar=`<div class="fbar" style="--zero:50%"><div class="fstack" style="left:${up?50:50-w}%;width:${w}%;background:${col(m.bloc)};border-radius:2px"></div></div>`;
-  row.innerHTML=`<div class="glab"><i style="background:${col(m.bloc)}"></i>${m.full}<span class="gd" style="color:var(--${up?'up':'down'})">${up?'+':''}${m.d30.toFixed(1)} pt</span></div>${bar}`;
-  moversEl.appendChild(row);
-  bindTip(row,`<b>${m.full}</b><br>Proba de victoire (marché) : ${up?'+':''}${m.d30.toFixed(1)} pt sur 30 j`);
+  const tot=it.parts.reduce((a,p)=>a+p.v,0)||1, gain=it.gain, w=Math.abs(it.d)*unit, left=gain?zero:zero-w;
+  const segs=it.parts.map(p=>`<div class="fseg" data-full="${p.name}" data-short="${p.short}" data-tip="${p.v.toFixed(1)} pt ${gain?'←':'→'} ${p.name}" style="width:${p.v/tot*100}%;background:${col(p.bloc)}">${p.name}</div>`).join('');
+  row.innerHTML=`<div class="glab"><i style="background:${col(it.bloc)}"></i>${it.who}<span class="gd" style="color:var(--${gain?'up':'down'})">${gain?'+':''}${it.d.toFixed(1)} pt</span></div>
+    <div class="fbar" style="--zero:${zero}%"><div class="fstack ${gain?'pos':'neg'}" style="left:${left}%;width:${w}%">${segs}</div></div>`;
+  flowsEl.appendChild(row);
+  row.querySelectorAll('.fseg').forEach(s=>bindTip(s,s.dataset.tip));
 });
+function fitLabels(){flowsEl.querySelectorAll('.fseg').forEach(el=>{el.textContent=el.dataset.full;
+  if(el.scrollWidth-el.clientWidth>1){el.textContent=el.dataset.short; if(el.scrollWidth-el.clientWidth>1)el.textContent='';}});}
+fitLabels();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitLabels);
+addEventListener('resize',fitLabels);
 
 /* ===== infobulle & thème ===== */
 const tip=document.getElementById('tip');
