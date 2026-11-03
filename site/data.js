@@ -60,8 +60,8 @@ window.DATA={
    "poll": null,
    "reach": null,
    "impl": null,
-   "mkt": 7.2,
-   "d30": 6.7
+   "mkt": 6.7,
+   "d30": 6.2
   },
   {
    "id": "glucksmann",
@@ -137,22 +137,22 @@ window.DATA={
    "poll": 7.3,
    "reach": 2.2,
    "impl": 1.21,
-   "mkt": 0.6,
-   "d30": -1.6
+   "mkt": 0.55,
+   "d30": -1.7
   }
  ],
  "movers": [
-  {
-   "id": "lagarde",
-   "full": "Christine Lagarde",
-   "bloc": "c",
-   "d30": 6.7
-  },
   {
    "id": "lisnard",
    "full": "David Lisnard",
    "bloc": "d",
    "d30": 6.3
+  },
+  {
+   "id": "lagarde",
+   "full": "Christine Lagarde",
+   "bloc": "c",
+   "d30": 6.2
   },
   {
    "id": "philippe",
@@ -176,7 +176,7 @@ window.DATA={
    "id": "attal",
    "full": "Gabriel Attal",
    "bloc": "c",
-   "d30": -1.6
+   "d30": -1.7
   },
   {
    "id": "bardella",
