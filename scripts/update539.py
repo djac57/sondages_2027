@@ -98,22 +98,34 @@ def affinity_flows(cands):
         u = a / (K @ v + eps)
         v = b / (K.T @ u + eps)
     T = u[:,None] * K * v[None,:]
+    TH = 0.15
     def lab(k): return {"name":NAMES[k][0],"short":NAMES[k][1]}
     out=[]
-    for j,(tj,tb,_) in enumerate(snk):           # gagnants : d'où vient le gain
+    for j,(tj,tb,_) in enumerate(snk):           # gagnants : d'où vient le gain (abstention = ligne dédiée, pas ici)
         if tj=="abstention": continue
-        parts=sorted([(src[i][0],src[i][1],T[i,j]) for i in range(len(src)) if T[i,j]>=0.25],
-                     key=lambda p:-p[2])[:4]
+        parts=sorted([(src[i][0],src[i][1],T[i,j]) for i in range(len(src)) if src[i][0]!="abstention" and T[i,j]>=TH],
+                     key=lambda p:-p[2])[:5]
         if parts:
             out.append({"who":NAMES[tj][0],"bloc":tb,"d":round(float(b[j]),1),"gain":True,
                         "parts":[{**lab(i),"bloc":ib,"v":round(float(v_),1)} for i,ib,v_ in parts]})
     for i,(si,sb,_) in enumerate(src):           # perdants : où est parti le poids
         if si=="abstention": continue
-        parts=sorted([(snk[j][0],snk[j][1],T[i,j]) for j in range(len(snk)) if T[i,j]>=0.25],
-                     key=lambda p:-p[2])[:4]
+        parts=sorted([(snk[j][0],snk[j][1],T[i,j]) for j in range(len(snk)) if snk[j][0]!="abstention" and T[i,j]>=TH],
+                     key=lambda p:-p[2])[:5]
         if parts:
             out.append({"who":NAMES[si][0],"bloc":sb,"d":round(float(-a[i]),1),"gain":False,
                         "parts":[{**lab(j),"bloc":jb,"v":round(float(v_),1)} for j,jb,v_ in parts]})
+    # ligne dédiée Abstention = résidu net seulement (>= 0.3)
+    for i,(si,_,_) in enumerate(src):            # abstention mobilisée -> où sont allés ces électeurs
+        if si=="abstention" and a[i]>=0.3:
+            parts=sorted([(snk[j][0],snk[j][1],T[i,j]) for j in range(len(snk)) if snk[j][0]!="abstention" and T[i,j]>=TH],key=lambda p:-p[2])[:6]
+            out.append({"who":"Abstention","bloc":"autres","d":round(float(-a[i]),1),"gain":False,
+                        "parts":[{**lab(k),"bloc":kb,"v":round(float(v_),1)} for k,kb,v_ in parts]})
+    for j,(tj,_,_) in enumerate(snk):            # démobilisation : candidats -> abstention
+        if tj=="abstention" and b[j]>=0.3:
+            parts=sorted([(src[i][0],src[i][1],T[i,j]) for i in range(len(src)) if src[i][0]!="abstention" and T[i,j]>=TH],key=lambda p:-p[2])[:6]
+            out.append({"who":"Abstention","bloc":"autres","d":round(float(b[j]),1),"gain":True,
+                        "parts":[{**lab(k),"bloc":kb,"v":round(float(v_),1)} for k,kb,v_ in parts]})
     out.sort(key=lambda e:-e["d"])
     return out
 
@@ -247,6 +259,7 @@ def build():
             "impl": im.get("impl"), "mkt": mkt, "d30": round(d30, 1),
         })
     decomp = affinity_flows(cands)
+    stables = [c["full"] for c in cands if abs(c["d30"]) < 0.3]
     vals = [c["impl"] for c in cands if c["impl"]] + [c["mkt"] for c in cands if c["mkt"]]
     scale = max(40, int(np.ceil(max(vals) / 10.0) * 10)) if vals else 50
 
@@ -263,6 +276,7 @@ def build():
         "scale": scale,
         "candidates": cands,
         "decomp": decomp,
+        "stables": stables,
     }
     os.makedirs(SITE, exist_ok=True)
     # Données INLINE dans une page unique auto-cohérente (pas de data.js séparé = pas de cache mixte).

@@ -184,7 +184,8 @@ footer b{color:var(--ink-soft);font-weight:600}
   <h2 class="phead">Où vont les voix <span>— décomposition des mouvements du marché, 30 jours</span></h2>
   <div class="hr"></div>
   <div id="flows"></div>
-  <p class="fnote">Flux <b>nets</b> estimés : le gain de chaque candidat est réparti entre ceux qui reculent et l'<b>abstention</b>, selon un graphe d'<b>affinités</b> entre électorats (seules les paires plausibles portent du flux). Un report brut masqué par un gain net (ex. Le Pen cède à Lisnard tout en gagnant ailleurs) n'est pas identifiable.</p>
+  <p class="fnote">Flux <b>nets</b> estimés : le gain de chaque candidat est réparti entre ceux qui reculent et l'<b>abstention</b>, selon un graphe d'<b>affinités</b> entre électorats (seules les paires plausibles portent du flux). L'<b>abstention</b> n'apparaît que pour le résidu net que donne le marché (mobilisation/démobilisation). Un report brut masqué par un gain net (ex. Le Pen cède à Lisnard tout en gagnant ailleurs) n'est pas identifiable.</p>
+  <p class="fnote" id="stablesNote"></p>
 </section>
 
 <footer><b>Sondages</b> : moyenne des <span id="npolls">—</span> derniers sondages du 1er tour (Wikipédia). <b>Marché</b> : Polymarket, proba de victoire (event <i>Next French Presidential Election</i>), tendance = variation sur 30 j. <b>Proba implicite</b> : simulation Monte-Carlo (200 000 tirages) du 1er tour (parts sondagières + incertitude) puis du 2nd tour (duels, avec plafond « front républicain » pour l'extrême et faiblesse de duel de LFI — hypothèses assumées). <b>Transferts</b> : flux nets estimés par un graphe d'affinités entre électorats (modèle). On compare sondages et marché sans recopier personne. Mise à jour automatique quotidienne · modèle <b>539</b> · code ouvert sur GitHub.</footer>
@@ -250,6 +251,8 @@ DEC.forEach(it=>{
   flowsEl.appendChild(row);
   row.querySelectorAll('.fseg').forEach(s=>bindTip(s,s.dataset.tip));
 });
+const stEl=document.getElementById('stablesNote');
+if(stEl&&D.stables&&D.stables.length)stEl.textContent='Stables sur 30 j (ni gain ni perte nette sur le marché) : '+D.stables.join(', ')+'.';
 function fitLabels(){flowsEl.querySelectorAll('.fseg').forEach(el=>{el.textContent=el.dataset.full;
   if(el.scrollWidth-el.clientWidth>1){el.textContent=el.dataset.short; if(el.scrollWidth-el.clientWidth>1)el.textContent='';}});}
 fitLabels();
