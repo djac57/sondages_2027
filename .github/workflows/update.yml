@@ -39,10 +39,10 @@ jobs:
       - name: Committer les nouvelles données
         continue-on-error: true   # un échec d'envoi ne doit JAMAIS empêcher le déploiement
         run: |
-          if [ -z "$(git status --porcelain raw site/data.js)" ]; then echo "Aucune nouvelle donnée."; exit 0; fi
+          if [ -z "$(git status --porcelain raw site)" ]; then echo "Aucune nouvelle donnée."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add raw site/data.js
+          git add raw site
           git commit -m "Données 539 mises à jour ($(date -u +%Y-%m-%d))"
           for i in 1 2 3; do
             git pull --rebase -X theirs origin main && git push && exit 0

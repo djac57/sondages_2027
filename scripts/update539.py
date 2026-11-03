@@ -265,10 +265,15 @@ def build():
         "decomp": decomp,
     }
     os.makedirs(SITE, exist_ok=True)
-    with open(os.path.join(SITE, "data.js"), "w", encoding="utf-8") as f:
-        f.write("/* Généré par scripts/update539.py — ne pas éditer à la main. */\n")
-        f.write("window.DATA=" + json.dumps(data, ensure_ascii=False, indent=1) + ";\n")
-    print(f"[build] data.js écrit : {len(cands)} candidats, échelle {scale}, marché {data['asof']['market']}, sondages {data['asof']['polls']}")
+    # Données INLINE dans une page unique auto-cohérente (pas de data.js séparé = pas de cache mixte).
+    tmpl = open(os.path.join(ROOT, "page_template.html"), encoding="utf-8").read()
+    html = tmpl.replace("__DATA539__", json.dumps(data, ensure_ascii=False))
+    with open(os.path.join(SITE, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
+    old = os.path.join(SITE, "data.js")
+    if os.path.exists(old):
+        os.remove(old)
+    print(f"[build] index.html écrit (données inline) : {len(cands)} candidats, échelle {scale}, marché {data['asof']['market']}, sondages {data['asof']['polls']}")
 
 # ---------------------------------------------------------------- MAIN
 if __name__ == "__main__":

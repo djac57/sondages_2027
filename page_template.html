@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>539 — Présidentielle 2027</title>
+<meta name="description" content="Probabilité de victoire : ce que les sondages impliquent contre ce que paient les marchés. Présidentielle française 2027.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700;800&family=Archivo:wght@400;500;600;700&display=swap">
+<style>
+/* 539 — bulletin officiel de la République. Bleu France + rouge Marianne, serif Spectral.
+   Thèse : proba de victoire IMPLICITE des sondages vs proba du MARCHÉ. */
+:root{
+  --paper:#FCFCFB; --surface:#FFFFFF; --ink:#171B2B; --ink-soft:#585E73; --ink-faint:#8A90A3;
+  --line:#E4E4EA; --line-soft:#EFEFF3;
+  --bleu:#000091; --blanc:#FFFFFF; --rouge:#E1000F;
+  --poll:#8A90A3; --market:#000091; --track:#ECECF3;
+  --up:#1C7C4A; --down:#C92A2A;
+  --b-gr:#D43A33; --b-rose:#E06AB0; --b-c:#C98A24; --b-eco:#3F9E6A; --b-d:#2E86C8; --b-ed:#7E57C2;
+  --fd:'Spectral',Georgia,'Times New Roman',serif;
+  --fu:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0D1020; --surface:#151A2C; --ink:#EBEEF7; --ink-soft:#9BA1B6; --ink-faint:#6D7489;
+  --line:#242A41; --line-soft:#1C2235;
+  --bleu:#9AABF2; --blanc:#D7DAE6; --rouge:#FF6060;
+  --poll:#7A8197; --market:#8CA2F2; --track:#222846;
+  --up:#4FBD82; --down:#FF6B6B;
+  --b-gr:#E8655E; --b-rose:#EE86C2; --b-c:#D9A33E; --b-eco:#58B98A; --b-d:#4FA0E0; --b-ed:#A289DC;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --paper:#0D1020; --surface:#151A2C; --ink:#EBEEF7; --ink-soft:#9BA1B6; --ink-faint:#6D7489;
+  --line:#242A41; --line-soft:#1C2235;
+  --bleu:#9AABF2; --blanc:#D7DAE6; --rouge:#FF6060;
+  --poll:#7A8197; --market:#8CA2F2; --track:#222846;
+  --up:#4FBD82; --down:#FF6B6B;
+  --b-gr:#E8655E; --b-rose:#EE86C2; --b-c:#D9A33E; --b-eco:#58B98A; --b-d:#4FA0E0; --b-ed:#A289DC;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--fu);line-height:1.4;
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.wrap{padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));
+  max-width:1120px;margin:0 auto}
+img{max-width:100%}
+
+header{padding-top:24px}
+.tricolore{display:flex;height:6px;width:140px;border:1px solid var(--line);margin-bottom:18px}
+.tricolore i{flex:1}
+.tricolore i:nth-child(1){background:var(--bleu)} .tricolore i:nth-child(2){background:var(--blanc)}
+.tricolore i:nth-child(3){background:var(--rouge)}
+.masthead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border-bottom:2px solid var(--ink);padding-bottom:14px}
+.brand{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.sigle{font-family:var(--fd);font-weight:800;font-size:32px;color:var(--bleu);line-height:1}
+.title{font-family:var(--fd);font-weight:700;font-size:clamp(25px,4.6vw,38px);line-height:1.02;
+  letter-spacing:-.01em;margin:0;text-wrap:balance}
+.title small{display:block;font-size:11px;font-weight:600;letter-spacing:.17em;text-transform:uppercase;
+  color:var(--ink-soft);font-family:var(--fu);margin-bottom:6px}
+.asof{font-size:12px;color:var(--ink-soft);text-align:right;line-height:1.55}
+.asof b{color:var(--ink);font-weight:600}
+
+section{padding-top:30px}
+.eyebrow{font-family:var(--fu);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--rouge);margin:0 0 3px}
+.phead{font-family:var(--fd);font-weight:600;font-size:21px;margin:0}
+.phead span{font-family:var(--fu);font-size:13px;font-weight:400;color:var(--ink-faint)}
+.hr{height:1px;background:var(--line);margin:13px 0 20px}
+
+/* ---- Dumbbell ---- */
+.axis{display:grid;grid-template-columns:154px 1fr 74px 46px;align-items:center;gap:12px;
+  font-size:10.5px;color:var(--ink-faint);padding-bottom:4px}
+.axticks{position:relative;height:13px}
+.axticks span{position:absolute;transform:translateX(-50%);top:0}
+.drow{display:grid;grid-template-columns:154px 1fr 74px 46px;align-items:center;gap:12px;
+  padding:8px 0;border-top:1px solid var(--line-soft)}
+.dvals{font-family:var(--fd);font-size:12.5px;text-align:right;white-space:nowrap}
+.dvals .p{color:var(--poll)} .dvals .m{color:var(--ink);font-weight:700} .dvals .a{color:var(--ink-faint);margin:0 1px}
+.dlab{min-width:0}
+.dlab .nm{font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:7px}
+.dlab .nm i{width:8px;height:8px;flex:none;border-radius:2px}
+.dlab .pty{font-size:10.5px;color:var(--ink-faint);padding-left:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dbar{position:relative;height:26px}
+.dbar .grid{position:absolute;top:0;bottom:0;width:1px;background:var(--line-soft)}
+.dconn{position:absolute;top:50%;height:2.5px;transform:translateY(-50%);border-radius:2px;opacity:.55}
+.ddot{position:absolute;top:50%;transform:translate(-50%,-50%);border-radius:50%}
+.ddot.poll{width:12px;height:12px;background:var(--surface);border:2.5px solid var(--poll)}
+.ddot.mkt{width:14px;height:14px;border:2.5px solid var(--surface)}
+.dtrend{font-size:12px;font-weight:700;text-align:right;white-space:nowrap;font-family:var(--fd)}
+.dtrend .up{color:var(--up)} .dtrend .down{color:var(--down)} .dtrend .flat{color:var(--ink-faint)}
+.dleg{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:16px;font-size:12px;color:var(--ink-soft)}
+.dleg .it{display:flex;align-items:center;gap:8px}
+.dleg .r1{width:12px;height:12px;border-radius:50%;background:var(--surface);border:2.5px solid var(--ink-soft)}
+.dleg .r2{width:13px;height:13px;border-radius:50%;background:var(--ink-soft)}
+
+/* ---- Décomposition des mouvements ---- */
+.flowrow{display:grid;grid-template-columns:150px 1fr;align-items:center;gap:14px;padding:11px 0;border-top:1px solid var(--line-soft)}
+.glab{font-weight:600;font-size:14px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.glab i{width:9px;height:9px;border-radius:2px;flex:none}
+.glab .gd{font-family:var(--fd);color:var(--up);font-size:13px;font-weight:700}
+.fbar{position:relative;height:28px}
+.fbar::before{content:"";position:absolute;left:var(--zero,50%);top:-3px;bottom:-3px;width:1px;background:var(--line)}
+.fstack{position:absolute;top:0;bottom:0;display:flex;border-radius:2px;overflow:hidden}
+.fstack.neg{flex-direction:row-reverse}
+.fseg{height:100%;display:flex;align-items:center;padding:0 5px;color:#fff;font-size:10.5px;font-weight:600;
+  border-right:2px solid var(--surface);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fseg:last-child{border-right:0}
+.fcap{display:flex;flex-wrap:wrap;gap:3px 13px;margin-top:6px;font-size:11px;color:var(--ink-soft)}
+.fcap span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.fcap i{width:8px;height:8px;border-radius:2px;flex:none}
+.fcap b{color:var(--ink);font-weight:700;font-family:var(--fd)}
+.fnote{font-size:12px;color:var(--ink-faint);margin-top:16px;line-height:1.55;max-width:70ch}
+.fnote b{color:var(--ink-soft);font-weight:600}
+.netwrap{border:1px solid var(--line);background:var(--surface);border-radius:3px;overflow:hidden;margin-top:2px}
+svg{display:block;width:100%;height:auto}
+.netleg{display:flex;flex-wrap:wrap;gap:16px 22px;margin-top:13px;font-size:12px;color:var(--ink-soft)}
+.netleg .it{display:flex;align-items:center;gap:8px}
+.netleg .ar{width:28px;height:0;border-top:3px solid var(--ink-soft);position:relative}
+.netleg .ar:after{content:"";position:absolute;right:-1px;top:-3.5px;border:4px solid transparent;border-left-color:var(--ink-soft)}
+.netleg .ab{width:13px;height:13px;border-radius:50%;background:var(--surface);border:1.5px dashed var(--ink-faint)}
+.mrow{display:grid;grid-template-columns:190px 1fr 44px;align-items:center;gap:12px;padding:7px 0;border-top:1px solid var(--line-soft);font-size:13px}
+.mlab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.mlab .nm{font-weight:600} .mlab .arr{color:var(--ink-faint)} .mlab i{width:8px;height:8px;border-radius:2px;flex:none}
+.mbar{height:16px;background:var(--track);border-radius:2px;overflow:hidden}
+.mfill{height:100%;border-radius:2px}
+.mval{text-align:right;font-family:var(--fd);font-weight:700}
+@media (max-width:620px){.mrow{grid-template-columns:150px 1fr 36px;gap:8px;font-size:12px}}
+@media (max-width:620px){.flowrow{grid-template-columns:110px 1fr;gap:9px} .fseg{font-size:10px;padding:0 4px}}
+
+footer{border-top:1px solid var(--line);margin-top:34px;padding:16px 0 30px;
+  font-size:11.5px;color:var(--ink-faint);line-height:1.6}
+footer b{color:var(--ink-soft);font-weight:600}
+
+#tip{position:fixed;z-index:30;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:var(--ink);color:var(--paper);font-size:12px;line-height:1.5;padding:9px 12px;border-radius:4px;
+  max-width:260px;box-shadow:0 8px 28px rgba(0,0,0,.3)}
+#tip b{font-weight:700;color:#fff} #tip .tp{color:#9db4ff;font-weight:700} #tip .sp{color:#cfd4e4}
+.toggle{position:fixed;top:max(10px,env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));
+  z-index:20;background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);
+  font-family:var(--fu);font-size:11px;font-weight:600;letter-spacing:.05em;padding:6px 10px;border-radius:3px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (max-width:620px){
+  .axis,.drow{grid-template-columns:118px 1fr 60px 40px;gap:9px}
+  .dlab .pty{display:none}
+}
+</style>
+</head>
+<body>
+<button class="toggle" id="themeBtn" aria-label="Basculer le thème">◐ THÈME</button>
+<div class="wrap">
+
+<header>
+  <div class="tricolore" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="masthead">
+    <div class="brand">
+      <div class="sigle">539</div>
+      <h1 class="title"><small>Observatoire électoral · sondages contre marchés</small>Présidentielle&nbsp;2027</h1>
+    </div>
+    <div class="asof">Proba implicite des sondages <b>(modèle 539)</b><br>
+      contre <b>marché Polymarket</b> · <b id="asofMkt">—</b><br>
+      sondages <span id="asofPolls">—</span> · 1er tour le <span id="tour1">—</span></div>
+  </div>
+</header>
+
+<section aria-label="Probabilité de victoire">
+  <p class="eyebrow">La différence</p>
+  <h2 class="phead">Probabilité de victoire <span>— ce qu'impliquent les sondages vs ce que paie le marché</span></h2>
+  <div class="hr"></div>
+  <div class="axis"><span></span><div class="axticks" id="axticks"></div><span style="text-align:right">S&nbsp;→&nbsp;M</span><span style="text-align:right">30&nbsp;j</span></div>
+  <div id="dumb"></div>
+  <div class="dleg">
+    <span class="it"><span class="r1"></span> Sondages — proba implicite (%)</span>
+    <span class="it"><span class="r2"></span> Marché — proba (%)</span>
+    <span class="it"><b style="color:var(--up)">▲</b>/<b style="color:var(--down)">▼</b> tendance marché, 30&nbsp;jours</span>
+  </div>
+</section>
+
+<section aria-label="Où vont les voix">
+  <p class="eyebrow">Qui prend à qui</p>
+  <h2 class="phead">Où vont les voix <span>— décomposition des mouvements du marché, 30 jours</span></h2>
+  <div class="hr"></div>
+  <div id="flows"></div>
+  <p class="fnote">Flux <b>nets</b> estimés : le gain de chaque candidat est réparti entre ceux qui reculent et l'<b>abstention</b>, selon un graphe d'<b>affinités</b> entre électorats (seules les paires plausibles portent du flux). Un report brut masqué par un gain net (ex. Le Pen cède à Lisnard tout en gagnant ailleurs) n'est pas identifiable.</p>
+</section>
+
+<footer><b>Sondages</b> : moyenne des <span id="npolls">—</span> derniers sondages du 1er tour (Wikipédia). <b>Marché</b> : Polymarket, proba de victoire (event <i>Next French Presidential Election</i>), tendance = variation sur 30 j. <b>Proba implicite</b> : simulation Monte-Carlo (200 000 tirages) du 1er tour (parts sondagières + incertitude) puis du 2nd tour (duels, avec plafond « front républicain » pour l'extrême et faiblesse de duel de LFI — hypothèses assumées). <b>Transferts</b> : flux nets estimés par un graphe d'affinités entre électorats (modèle). On compare sondages et marché sans recopier personne. Mise à jour automatique quotidienne · modèle <b>539</b> · code ouvert sur GitHub.</footer>
+</div>
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>window.DATA=__DATA539__;</script>
+<script>
+const BL={gr:'--b-gr',rose:'--b-rose',c:'--b-c',eco:'--b-eco',d:'--b-d',ed:'--b-ed',autres:'--ink-faint'};
+const col=k=>'var('+(BL[k]||'--ink-faint')+')';
+const D=window.DATA||{candidates:[],movers:[],scale:60,asof:{},tour1:'',n_polls:'—'};
+const C=D.candidates||[];
+const MAX=D.scale||60, pos=v=>Math.max(0,Math.min(100,v/MAX*100)), f=v=>v>=10?String(Math.round(v)):v.toFixed(1);
+const pct=v=>v==null?'n/d':f(v);
+/* en-tête & pied dynamiques */
+document.getElementById('asofMkt').textContent=(D.asof&&D.asof.market)||'—';
+document.getElementById('asofPolls').textContent=(D.asof&&D.asof.polls)||'—';
+document.getElementById('tour1').textContent=D.tour1||'—';
+const npEl=document.getElementById('npolls'); if(npEl)npEl.textContent=D.n_polls||'—';
+
+/* ===== Dumbbell : proba implicite (sondages) vs marché ===== */
+const ax=document.getElementById('axticks');
+const ticks=[];for(let t=0;t<=MAX;t+=20)ticks.push(t);
+ticks.forEach(t=>{const s=document.createElement('span');s.textContent=t;s.style.left=pos(t)+'%';ax.appendChild(s);});
+const dumb=document.getElementById('dumb');
+C.forEach(c=>{
+  const r=document.createElement('div'); r.className='drow';
+  const hasI=c.impl!=null, hasM=c.mkt!=null;
+  const lo=(hasI&&hasM)?Math.min(c.impl,c.mkt):null, hi=(hasI&&hasM)?Math.max(c.impl,c.mkt):null;
+  const tA=c.d30>0.3?`<span class="up">▲&nbsp;+${c.d30.toFixed(1)}</span>`
+    :c.d30<-0.3?`<span class="down">▼&nbsp;${c.d30.toFixed(1)}</span>`:`<span class="flat">–</span>`;
+  const conn=(lo!=null)?`<div class="dconn" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)}%;background:${col(c.bloc)}"></div>`:'';
+  const dotI=hasI?`<div class="ddot poll" style="left:${pos(c.impl)}%;border-color:${col(c.bloc)}"></div>`:'';
+  const dotM=hasM?`<div class="ddot mkt" style="left:${pos(c.mkt)}%;background:${col(c.bloc)}"></div>`:'';
+  r.innerHTML=`<div class="dlab"><div class="nm"><i style="background:${col(c.bloc)}"></i>${c.full}</div>
+      <div class="pty">${c.pty}</div></div>
+    <div class="dbar">
+      ${ticks.slice(1).map(t=>`<div class="grid" style="left:${pos(t)}%"></div>`).join('')}
+      ${conn}${dotI}${dotM}
+    </div>
+    <div class="dvals"><span class="p">${pct(c.impl)}</span><span class="a">→</span><span class="m">${pct(c.mkt)}</span></div>
+    <div class="dtrend">${tA}</div>`;
+  dumb.appendChild(r);
+  const l1=(c.poll!=null?`1er tour : <span class="sp">${c.poll.toFixed(1)} %</span>`:'<span class="sp">non sondé</span>')
+    +(c.reach!=null?` · P(2nd tour) : <span class="sp">${c.reach.toFixed(0)} %</span>`:'');
+  bindTip(r,`<b>${c.full}</b> — ${c.pty}<br>${l1}<br>
+    Proba victoire — sondages : <b>${c.impl!=null?c.impl.toFixed(1)+' %':'n/d'}</b> · marché : <span class="tp">${c.mkt!=null?c.mkt.toFixed(1)+' %':'n/d'}</span><br>
+    Tendance marché 30 j : ${c.d30>0?'+':''}${c.d30.toFixed(1)} pt`);
+});
+
+/* ===== Où vont les voix : décomposition par affinités (window.DATA.decomp) ===== */
+const flowsEl=document.getElementById('flows');
+const DEC=D.decomp||[];
+const maxGain=Math.max(0.1,...DEC.filter(x=>x.gain).map(x=>x.d));
+const maxLoss=Math.max(0.1,...DEC.filter(x=>!x.gain).map(x=>-x.d));
+const unit=100/(maxGain+maxLoss), zero=maxLoss*unit;
+DEC.forEach(it=>{
+  const row=document.createElement('div');row.className='flowrow';
+  const tot=it.parts.reduce((a,p)=>a+p.v,0)||1, gain=it.gain, w=Math.abs(it.d)*unit, left=gain?zero:zero-w;
+  const segs=it.parts.map(p=>`<div class="fseg" data-full="${p.name}" data-short="${p.short}" data-tip="${p.v.toFixed(1)} pt ${gain?'←':'→'} ${p.name}" style="width:${p.v/tot*100}%;background:${col(p.bloc)}">${p.name}</div>`).join('');
+  row.innerHTML=`<div class="glab"><i style="background:${col(it.bloc)}"></i>${it.who}<span class="gd" style="color:var(--${gain?'up':'down'})">${gain?'+':''}${it.d.toFixed(1)} pt</span></div>
+    <div class="fbar" style="--zero:${zero}%"><div class="fstack ${gain?'pos':'neg'}" style="left:${left}%;width:${w}%">${segs}</div></div>`;
+  flowsEl.appendChild(row);
+  row.querySelectorAll('.fseg').forEach(s=>bindTip(s,s.dataset.tip));
+});
+function fitLabels(){flowsEl.querySelectorAll('.fseg').forEach(el=>{el.textContent=el.dataset.full;
+  if(el.scrollWidth-el.clientWidth>1){el.textContent=el.dataset.short; if(el.scrollWidth-el.clientWidth>1)el.textContent='';}});}
+fitLabels();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitLabels);
+addEventListener('resize',fitLabels);
+
+/* ===== infobulle & thème ===== */
+const tip=document.getElementById('tip');
+function bindTip(node,html){
+  const show=ev=>{tip.innerHTML=html;tip.style.opacity='1';move(ev);};
+  const move=ev=>{const e=ev.touches?ev.touches[0]:ev;let x=e.clientX+14,y=e.clientY+16;
+    const b=tip.getBoundingClientRect();
+    if(x+b.width>innerWidth-8)x=e.clientX-b.width-14;
+    if(y+b.height>innerHeight-8)y=e.clientY-b.height-16;
+    tip.style.left=x+'px';tip.style.top=y+'px';};
+  const hide=()=>{tip.style.opacity='0';};
+  node.addEventListener('mouseenter',show);node.addEventListener('mousemove',move);
+  node.addEventListener('mouseleave',hide);
+  node.addEventListener('touchstart',show,{passive:true});node.addEventListener('touchend',hide);
+}
+let forced=null;
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  const sys=matchMedia('(prefers-color-scheme:dark)').matches;
+  const cur=forced||(sys?'dark':'light');
+  forced=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',forced);
+});
+</script>
+</body>
+</html>
