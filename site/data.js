@@ -75,17 +75,6 @@ window.DATA={
    "d30": 1.3
   },
   {
-   "id": "hollande",
-   "full": "François Hollande",
-   "pty": "Parti socialiste",
-   "bloc": "rose",
-   "poll": null,
-   "reach": null,
-   "impl": null,
-   "mkt": 2.05,
-   "d30": -2.8
-  },
-  {
    "id": "bardella",
    "full": "Jordan Bardella",
    "pty": "Rassemblement national",
@@ -95,6 +84,17 @@ window.DATA={
    "impl": null,
    "mkt": 2.05,
    "d30": 1.5
+  },
+  {
+   "id": "hollande",
+   "full": "François Hollande",
+   "pty": "Parti socialiste",
+   "bloc": "rose",
+   "poll": null,
+   "reach": null,
+   "impl": null,
+   "mkt": 2.05,
+   "d30": -2.8
   },
   {
    "id": "villepin",
@@ -143,38 +143,6 @@ window.DATA={
  ],
  "decomp": [
   {
-   "who": "Lagarde",
-   "bloc": "c",
-   "d": 6.7,
-   "gain": true,
-   "parts": [
-    {
-     "name": "Philippe",
-     "short": "EP",
-     "bloc": "c",
-     "v": 2.8
-    },
-    {
-     "name": "Hollande",
-     "short": "FH",
-     "bloc": "rose",
-     "v": 1.9
-    },
-    {
-     "name": "Le Pen",
-     "short": "LP",
-     "bloc": "ed",
-     "v": 0.8
-    },
-    {
-     "name": "Attal",
-     "short": "GA",
-     "bloc": "c",
-     "v": 0.7
-    }
-   ]
-  },
-  {
    "who": "Lisnard",
    "bloc": "d",
    "d": 6.3,
@@ -184,25 +152,57 @@ window.DATA={
      "name": "Le Pen",
      "short": "LP",
      "bloc": "ed",
-     "v": 2.6
+     "v": 2.7
     },
     {
      "name": "Philippe",
      "short": "EP",
      "bloc": "c",
-     "v": 2.4
+     "v": 2.5
     },
     {
      "name": "Attal",
      "short": "GA",
      "bloc": "c",
-     "v": 0.6
+     "v": 0.7
     },
     {
      "name": "Retailleau",
      "short": "BR",
      "bloc": "d",
      "v": 0.3
+    }
+   ]
+  },
+  {
+   "who": "Lagarde",
+   "bloc": "c",
+   "d": 6.2,
+   "gain": true,
+   "parts": [
+    {
+     "name": "Philippe",
+     "short": "EP",
+     "bloc": "c",
+     "v": 2.6
+    },
+    {
+     "name": "Hollande",
+     "short": "FH",
+     "bloc": "rose",
+     "v": 1.9
+    },
+    {
+     "name": "Attal",
+     "short": "GA",
+     "bloc": "c",
+     "v": 0.8
+    },
+    {
+     "name": "Le Pen",
+     "short": "LP",
+     "bloc": "ed",
+     "v": 0.7
     }
    ]
   },
@@ -277,20 +277,20 @@ window.DATA={
   {
    "who": "Attal",
    "bloc": "c",
-   "d": -1.6,
+   "d": -1.7,
    "gain": false,
    "parts": [
     {
      "name": "Lagarde",
      "short": "CL",
      "bloc": "c",
-     "v": 0.7
+     "v": 0.8
     },
     {
      "name": "Lisnard",
      "short": "DL",
      "bloc": "d",
-     "v": 0.6
+     "v": 0.7
     }
    ]
   },
@@ -324,7 +324,7 @@ window.DATA={
      "name": "Lisnard",
      "short": "DL",
      "bloc": "d",
-     "v": 2.6
+     "v": 2.7
     },
     {
      "name": "Bardella",
@@ -336,7 +336,7 @@ window.DATA={
      "name": "Lagarde",
      "short": "CL",
      "bloc": "c",
-     "v": 0.8
+     "v": 0.7
     },
     {
      "name": "Villepin",
@@ -356,13 +356,13 @@ window.DATA={
      "name": "Lagarde",
      "short": "CL",
      "bloc": "c",
-     "v": 2.8
+     "v": 2.6
     },
     {
      "name": "Lisnard",
      "short": "DL",
      "bloc": "d",
-     "v": 2.4
+     "v": 2.5
     },
     {
      "name": "Glucksmann",
