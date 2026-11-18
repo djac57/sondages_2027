@@ -45,8 +45,12 @@ RUNOFF = {'le pen':0.46,'bardella':0.50,'zemmour':0.30,'dupont-aignan':0.38,
           'glucksmann':0.60,'hollande':0.57,'tondelier':0.47}
 SIG_FR = 4.0          # incertitude 1er tour (points), horizon long
 N_SIM  = 200000
-POLL_RECENT = 16      # nb de sondages récents retenus pour l'agrégat (table triée récent->ancien)
+POLL_RECENT = 8       # nb de SONDAGES (pas de lignes) récents retenus pour l'agrégat, tous testant la même hypothèse
+POLL_MIN = 3          # minimum de sondages testant l'hypothèse de référence
 POLL_MINCOLS = 6      # nb minimal de colonnes de candidats connus pour reconnaître la table du 1er tour
+DUEL_RECENT = 5       # nb de sondages récents par duel de 2nd tour
+MOIS = {'janvier':1,'fevrier':2,'mars':3,'avril':4,'mai':5,'juin':6,'juillet':7,'aout':8,
+        'septembre':9,'octobre':10,'novembre':11,'decembre':12}
 
 # étiquettes courtes pour la matrice de transferts
 NAMES = {
@@ -70,11 +74,47 @@ BAN = {('lisnard','hollande')}        # paires interdites (correction d'époque)
 def aff_bloc(a, b):
     return AFF_BLOC.get((a, b)) or AFF_BLOC.get((b, a)) or 0.10
 
-def affinity_flows(cands):
+IFOP_MD = "ifop-reports-centre-droite.md"
+IFOP_ABST = 0.05      # IFOP ne mesure pas l'abstention (reports entre exprimés) : poids faible
+IFOP_EPS  = 0.005     # destination absente d'une ligne IFOP sans « Autres » : quasi nulle
+def load_ifop(path=None):
+    """Reports MESURÉS (IFOP) lus dans raw/ifop-reports-centre-droite.md :
+    {source: {"to": {dest|'autres': %}, "note": hypothèse}}. Sections « ## Si X n'est pas candidat (...) »
+    suivies d'une ligne « - Nom 52 · Nom 23 · Autres 12 »."""
+    path = path or os.path.join(RAW, IFOP_MD)
+    try:
+        txt = open(path, encoding="utf-8").read()
+    except Exception:
+        return {}
+    out, cur = {}, None
+    for line in txt.splitlines():
+        m = re.match(r"##\s+Si\s+(.+?)\s+n'est pas candidat\s*\((.*)\)", line)
+        if m:
+            cur = keyof(m.group(1).title())
+            if cur:
+                out[cur] = {"to": {}, "note": m.group(2).strip()}
+            continue
+        if cur and line.startswith("- "):
+            for part in line[2:].split("·"):
+                mm = re.match(r"\s*(.+?)\s+(\d+(?:[.,]\d+)?)\s*$", part)
+                if not mm:
+                    continue
+                nom, v = mm.group(1), float(mm.group(2).replace(",", "."))
+                k = "autres" if _strip(nom) == "autres" else keyof(nom)
+                if k:
+                    out[cur]["to"][k] = v
+            cur = None
+    return {k: v for k, v in out.items() if v["to"]}
+
+def affinity_flows(cands, ifop=None):
     """Décompose les mouvements NETS du marché (d30) en transferts plausibles,
     par flux guidé par affinités (Sinkhorn), transbordement via le nœud Abstention.
+    Pour les candidats dont les reports sont MESURÉS (IFOP), la clé de répartition de leur
+    ligne est la mesure IFOP (destinations citées = %, le reste se partage « Autres » par affinité) ;
+    les paires citées par IFOP sont marquées m=True (mesuré), tout le reste est inféré.
     Limite assumée : seuls les flux NETS sont identifiables (pas les bruts)."""
     import numpy as np
+    ifop = ifop or {}
     losers  = [c for c in cands if c["d30"] is not None and c["d30"] <= -0.3]   # d30 None = tendance inconnue
     winners = [c for c in cands if c["d30"] is not None and c["d30"] >=  0.3]
     if not losers or not winners:
@@ -88,6 +128,22 @@ def affinity_flows(cands):
     a = np.array([x[2] for x in src]); b = np.array([x[2] for x in snk])
     K = np.zeros((len(src), len(snk)))
     for i,(si,sb,_) in enumerate(src):
+        mes = ifop.get(si, {}).get("to")
+        if mes:   # ligne MESURÉE (IFOP) : clé de répartition = reports déclarés
+            autres = mes.get("autres", 0.0)
+            libres = [j for j,(tj,tb,_) in enumerate(snk) if tj != "abstention" and tj != si and tj not in mes
+                      and (si,tj) not in BAN and (tj,si) not in BAN]
+            wl = {j: aff_bloc(sb, snk[j][1]) for j in libres}
+            for j,(tj,tb,_) in enumerate(snk):
+                if tj == si or (si,tj) in BAN or (tj,si) in BAN:
+                    continue
+                if tj == "abstention":
+                    K[i,j] = IFOP_ABST
+                elif tj in mes:
+                    K[i,j] = mes[tj] / 100.0
+                else:     # destination non citée : sa part de « Autres » (par affinité), sinon quasi nulle
+                    K[i,j] = max(IFOP_EPS, autres / 100.0 * wl[j] / (sum(wl.values()) or 1))
+            continue
         for j,(tj,tb,_) in enumerate(snk):
             if si == tj:                      # pas de flux vers soi-même
                 continue
@@ -95,27 +151,42 @@ def affinity_flows(cands):
                 continue
             K[i,j] = AFF_ABST if (si=="abstention" or tj=="abstention") else aff_bloc(sb,tb)
     u = np.ones(len(src)); v = np.ones(len(snk)); eps=1e-9
-    for _ in range(800):
+    for _ in range(2000):
         u = a / (K @ v + eps)
         v = b / (K.T @ u + eps)
     T = u[:,None] * K * v[None,:]
+    err = max(float(np.abs(T.sum(1) - a).max()), float(np.abs(T.sum(0) - b).max()))
+    if err > 0.05:
+        print(f"[build] décomposition : marges non tenues à {err:.2f} pt près", file=sys.stderr)
     TH = 0.15
     def lab(k): return {"name":NAMES[k][0],"short":NAMES[k][1]}
+    def mpart(s, t):   # paire mesurée par IFOP ?
+        m = ifop.get(s, {}).get("to", {})
+        return t in m
+    def part(k, kb, v_, s, t):
+        p = {**lab(k), "bloc": kb, "v": round(float(v_), 1)}
+        if mpart(s, t):
+            p["m"] = True
+            p["pct"] = ifop[s]["to"][t]
+            p["of"] = NAMES[s][0]
+            p["note"] = ifop[s]["note"]
+        return p
     out=[]
     for j,(tj,tb,_) in enumerate(snk):           # gagnants : d'où vient le gain (abstention = ligne dédiée, pas ici)
         if tj=="abstention": continue
         parts=sorted([(src[i][0],src[i][1],T[i,j]) for i in range(len(src)) if src[i][0]!="abstention" and T[i,j]>=TH],
                      key=lambda p:-p[2])[:5]
         if parts:
-            out.append({"who":NAMES[tj][0],"bloc":tb,"d":round(float(b[j]),1),"gain":True,
-                        "parts":[{**lab(i),"bloc":ib,"v":round(float(v_),1)} for i,ib,v_ in parts]})
+            out.append({"id":tj,"who":NAMES[tj][0],"bloc":tb,"d":round(float(b[j]),1),"gain":True,
+                        "parts":[part(i,ib,v_,i,tj) for i,ib,v_ in parts]})
     for i,(si,sb,_) in enumerate(src):           # perdants : où est parti le poids
         if si=="abstention": continue
         parts=sorted([(snk[j][0],snk[j][1],T[i,j]) for j in range(len(snk)) if snk[j][0]!="abstention" and T[i,j]>=TH],
                      key=lambda p:-p[2])[:5]
         if parts:
-            out.append({"who":NAMES[si][0],"bloc":sb,"d":round(float(-a[i]),1),"gain":False,
-                        "parts":[{**lab(j),"bloc":jb,"v":round(float(v_),1)} for j,jb,v_ in parts]})
+            out.append({"id":si,"who":NAMES[si][0],"bloc":sb,"d":round(float(-a[i]),1),"gain":False,
+                        "mes":si in ifop,
+                        "parts":[part(j,jb,v_,si,j) for j,jb,v_ in parts]})
     # ligne dédiée Abstention = résidu net seulement (>= 0.3)
     for i,(si,_,_) in enumerate(src):            # abstention mobilisée -> où sont allés ces électeurs
         if si=="abstention" and a[i]>=0.3:
@@ -174,7 +245,7 @@ def fetch_market():
     ev = requests.get("https://gamma-api.polymarket.com/events",
                       params={"slug": POLY_SLUG}, headers=UA, timeout=30).json()
     ev = ev[0] if isinstance(ev, list) else ev
-    out = {}
+    out, hist = {}, {}
     for m in ev.get("markets", []):
         if m.get("closed"):
             continue
@@ -206,17 +277,163 @@ def fetch_market():
                 print(f"[fetch] marché : historique vide pour '{k}', tendance 30 j inconnue", file=sys.stderr)
         except Exception as e:
             print(f"[fetch] marché : historique en échec pour '{k}', tendance 30 j inconnue : {e}", file=sys.stderr)
+        try:   # historique COMPLET (1 point/jour) pour la courbe : un échec ne coûte que la courbe
+            hh = requests.get("https://clob.polymarket.com/prices-history",
+                              params={"market": toks[0], "interval": "max", "fidelity": 1440},
+                              headers=UA, timeout=30).json().get("history", [])
+            if hh:
+                hist[k] = hh
+        except Exception as e:
+            print(f"[fetch] marché : historique complet en échec pour '{k}' (courbe seulement) : {e}", file=sys.stderr)
         out[k] = {"mkt": round(yes * 100, 2), "d30": None if d30 is None else round(d30, 2)}
     if len(out) < 3:
         raise RuntimeError("marché: trop peu de candidats, abandon")
+    today = datetime.date.today().isoformat()
     save_atomic(os.path.join(RAW, "market.json"),
-                {"fetched": datetime.date.today().isoformat(), "volume": ev.get("volume"),
-                 "candidates": out})
+                {"fetched": today, "volume": ev.get("volume"), "candidates": out})
     print(f"[fetch] marché OK : {len(out)} candidats")
+    try:      # l'historique ne doit JAMAIS faire échouer la récupération
+        save_history(hist, {k: v["mkt"] for k, v in out.items()}, today)
+    except Exception as e:
+        print(f"[fetch] historique du marché non enregistré : {e}", file=sys.stderr)
 
-def fetch_polls():
-    html = requests.get(WIKI, headers=UA, timeout=40).text
+HIST_PATH = os.path.join(RAW, "market_history.json")
+def save_history(hist, spot, today):
+    """Courbe du marché, qui se construit jour après jour : {"series": {id: {"AAAA-MM-JJ": proba %}}}.
+    Upsert : l'API (clôture quotidienne) complète/écrase les jours qu'elle couvre ; le relevé du jour
+    (spot) fixe la date du jour. Les jours anciens que l'API ne renverrait plus sont conservés."""
+    hj = load_json(HIST_PATH, {})
+    ser = hj.get("series", {})
+    for k, h in hist.items():
+        s = ser.setdefault(k, {})
+        for x in h:
+            d = datetime.datetime.fromtimestamp(int(x["t"]), datetime.timezone.utc).date().isoformat()
+            s[d] = round(float(x["p"]) * 100, 2)
+    for k, p in spot.items():
+        ser.setdefault(k, {})[today] = p
+    ser = {k: dict(sorted(v.items())) for k, v in ser.items()}
+    save_atomic(HIST_PATH, {"source": "Polymarket, event « Next French Presidential Election » "
+                            "(clôture quotidienne CLOB + relevé 539 du jour)",
+                            "updated": today, "series": ser})
+    print(f"[fetch] historique du marché : {len(ser)} candidats, "
+          f"{max((len(v) for v in ser.values()), default=0)} jours au plus")
+
+def _col(t, prefix):
+    return next((c for c in t.columns if str(c[0] if isinstance(c, tuple) else c).startswith(prefix)), None)
+
+def _polls_of(t, colkey, sond):
+    """Lignes de la table -> liste de SONDAGES (récent -> ancien). Un sondage = (sondeur, date,
+    échantillon) ; il porte plusieurs lignes = plusieurs hypothèses de casting.
+    Chaque hypothèse : {id: score} des candidats testés (cellule numérique)."""
+    dcol, ecol = _col(t, "Date"), _col(t, "Échantillon")
+    out, idx = [], {}
+    for _, r in t.iterrows():
+        s = r[sond]
+        if not isinstance(s, str) or s == "Sondeur" or len(s) > 40:   # ligne vide / en-tête / événement
+            continue
+        key = (_strip(s).replace(" ", ""), str(r[dcol]) if dcol is not None else "",
+               str(r[ecol]) if ecol is not None else "")
+        hyp = {}
+        for c, k in colkey.items():
+            v = pd.to_numeric(r[c], errors="coerce")
+            if pd.notna(v):
+                hyp[k] = float(v)
+        if not hyp:
+            continue
+        if key not in idx:
+            idx[key] = len(out)
+            out.append({"sondeur": s.strip(), "date": key[1], "hyps": []})
+        out[idx[key]]["hyps"].append(hyp)
+    return out
+
+def coherent_average(polls, order=None):
+    """Moyenne COHÉRENTE : une hypothèse de casting de référence, la même pour tous les sondages.
+    Référence = l'hypothèse la plus complète du dernier sondage (repli : la plus complète testée par
+    au moins POLL_MIN sondages). On garde les POLL_RECENT derniers sondages qui la testent (une ligne
+    contenant tous ses candidats ; plusieurs lignes d'un même sondage = moyennées entre elles), puis
+    chaque candidat est moyenné sur ce MÊME ensemble de sondages."""
+    def matches(casting):
+        sel = []
+        for p in polls:
+            rows = [h for h in p["hyps"] if casting <= set(h)]
+            if rows:
+                sel.append((p, rows))
+        return sel
+    cands = []
+    if polls:
+        cands.append(set(max(polls[0]["hyps"], key=len)))
+    for p in polls[:12]:
+        for h in sorted(p["hyps"], key=len, reverse=True):
+            cands.append(set(h))
+    casting, sel = None, []
+    for c in cands:
+        s = matches(c)
+        if len(s) >= POLL_MIN:
+            casting, sel = c, s
+            break
+    if casting is None:
+        raise RuntimeError("sondages : aucune hypothèse de casting testée par assez de sondages, abandon")
+    sel = sel[:POLL_RECENT]
+    per = []
+    for p, rows in sel:
+        per.append({k: float(np.mean([h[k] for h in rows])) for k in casting})
+    keys = [k for k in (order or sorted(casting)) if k in casting]   # ordre FIXE (colonnes) : tirages reproductibles
+    avg = {k: round(float(np.mean([x[k] for x in per])), 2) for k in keys}
+    return avg, casting, [{"sondeur": p["sondeur"], "date": p["date"]} for p, _ in sel]
+
+def _iso_fr(txt):
+    """« (7 juillet 2026) » -> '2026-07-07' (dernière date française entre parenthèses)."""
+    ms = re.findall(r"\((\d{1,2})(?:er)?\s+([a-zéèûô]+)\s+(\d{4})\)", txt)
+    for d, m, y in reversed(ms):
+        mo = MOIS.get(_strip(m))
+        if mo:
+            try:
+                return datetime.date(int(y), mo, int(d)).isoformat()
+            except ValueError:
+                pass
+    return None
+
+def parse_wiki(html):
     tables = pd.read_html(io.StringIO(html), decimal=",", thousands="\xa0")
+    res = {"duels": [], "events": []}
+    seen_ev = set()
+    for t in tables:      # événements datés que Wikipédia insère dans les tables (sourcés sur la page)
+        sd = _col(t, "Sondeur")
+        if sd is None:
+            continue
+        for s in t[sd]:
+            if isinstance(s, str) and len(s) > 40:
+                d = _iso_fr(s)
+                txt = re.sub(r"\[[^\]]*\]", "", s).strip()
+                if d and txt not in seen_ev:
+                    seen_ev.add(txt)
+                    res["events"].append({"d": d, "t": txt})
+    res["events"].sort(key=lambda e: e["d"])
+    for t in tables:      # duels de 2nd tour : tables à exactement 2 candidats connus
+        sd = _col(t, "Sondeur")
+        if sd is None:
+            continue
+        ck = {}
+        for c in t.columns:
+            k = colkeyof(c)
+            if k and k not in ck.values():
+                ck[c] = k
+        if len(ck) != 2:
+            continue
+        ps = [p for p in _polls_of(t, ck, sd)
+              if any(len(h) == 2 and 95 <= sum(h.values()) <= 105 for h in p["hyps"])][:DUEL_RECENT]
+        if not ps:
+            continue
+        (ka, kb) = list(ck.values())
+        va = np.mean([next(h for h in p["hyps"] if len(h) == 2)[ka] for p in ps])
+        vb = np.mean([next(h for h in p["hyps"] if len(h) == 2)[kb] for p in ps])
+        res["duels"].append({"a": ka, "b": kb, "va": round(float(va), 1), "vb": round(float(vb), 1),
+                             "n": len(ps), "last": f"{ps[0]['sondeur']} {ps[0]['date']}"})
+    return tables, res
+
+def fetch_polls(html=None, save=True):
+    html = html if html is not None else requests.get(WIKI, headers=UA, timeout=40).text
+    tables, extra = parse_wiki(html)
     # La table est choisie par ses en-têtes, pas par sa position : la première (= la plus récente)
     # qui a une colonne « Sondeur » et au moins POLL_MINCOLS colonnes de candidats connus.
     t = colkey = sond = None
@@ -242,20 +459,20 @@ def fetch_polls():
     libre = [c for c in t.columns if c not in colkey and c != sond]
     print("[fetch] sondages : colonnes appariées : " + ", ".join(f"{titre(c)} -> {k}" for c, k in colkey.items()))
     print("[fetch] sondages : colonnes non appariées : " + (", ".join(titre(c) for c in libre) or "aucune"))
-    t = t[t[sond].notna() & (t[sond] != "Sondeur")]
-    recent = t.head(POLL_RECENT)
-    polls, n = {}, {}
-    for c, k in colkey.items():
-        vals = pd.to_numeric(recent[c], errors="coerce").dropna()
-        if len(vals):
-            polls[k] = round(float(vals.mean()), 2)
-            n[k] = int(len(vals))
+    polls_list = _polls_of(t, colkey, sond)
+    polls, casting, used = coherent_average(polls_list, list(colkey.values()))
     if len(polls) < 4:
-        raise RuntimeError("sondages: trop peu de colonnes, abandon")
-    save_atomic(os.path.join(RAW, "polls.json"),
-                {"fetched": datetime.date.today().isoformat(),
-                 "n_polls": int(len(recent)), "polls": polls, "n": n})
-    print(f"[fetch] sondages OK : {len(polls)} candidats, {len(recent)} sondages")
+        raise RuntimeError("sondages: trop peu de candidats dans l'hypothèse de référence, abandon")
+    out = {"fetched": datetime.date.today().isoformat(),
+           "n_polls": len(used), "polls": polls, "n": {k: len(used) for k in polls},
+           "method": "hypothèse de casting commune à tous les sondages retenus",
+           "used": used, "duels": extra["duels"], "events": extra["events"]}
+    if save:
+        save_atomic(os.path.join(RAW, "polls.json"), out)
+    print(f"[fetch] sondages OK : {len(polls)} candidats ({', '.join(sorted(casting))}), "
+          f"{len(used)} sondages ({used[0]['sondeur']} {used[0]['date']} -> {used[-1]['sondeur']} {used[-1]['date']}), "
+          f"{len(extra['duels'])} duels, {len(extra['events'])} événements")
+    return out
 
 # ---------------------------------------------------------------- MODEL
 def model_implied(pollavg):
@@ -287,6 +504,7 @@ def build():
     mk = market.get("candidates", {})
     pa = pollsf.get("polls", {})
     implied = model_implied(pa)
+    ifop = load_ifop()
 
     ids = sorted(set(mk) | set(pa),
                  key=lambda k: (mk.get(k, {}).get("mkt", 0)), reverse=True)
@@ -298,12 +516,27 @@ def build():
         poll = pa.get(k)
         if (mkt is None or mkt < 1) and (poll is None or poll < 3):
             continue
+        # pourquoi pas de proba implicite : non testé dans l'hypothèse de référence, ou < 1 % (hors simulation)
+        why = None if im.get("impl") is not None else ("untested" if poll is None else "low")
         cands.append({
             "id": k, "full": CAND[k][0], "pty": CAND[k][1], "bloc": CAND[k][2],
-            "poll": im.get("first", poll), "reach": im.get("reach"),
+            "poll": im.get("first", poll), "praw": poll, "reach": im.get("reach"),
             "impl": im.get("impl"), "mkt": mkt, "d30": None if d30 is None else round(d30, 1),
+            "why": why,
         })
-    decomp = affinity_flows(cands)
+    decomp = affinity_flows(cands, ifop)
+
+    # courbe du marché (raw/market_history.json) : candidats affichés, 5 premiers en tête
+    hj = load_json(HIST_PATH, {})
+    shown = {c["id"] for c in cands}
+    hist = {k: [[d, round(p, 2)] for d, p in s.items()] for k, s in hj.get("series", {}).items()
+            if k in shown and len(s) >= 2}
+    top5 = [c["id"] for c in cands if c["mkt"] is not None and c["id"] in hist][:5]
+    d0 = min((v[0][0] for v in hist.values()), default=None)
+    events = [e for e in pollsf.get("events", []) if d0 and e["d"] >= d0]
+    duels = [x for x in pollsf.get("duels", []) if x["a"] in shown or x["b"] in shown]
+    for x in duels:
+        x["na"], x["nb"] = NAMES[x["a"]][0], NAMES[x["b"]][0]
     stables = [c["full"] for c in cands if c["d30"] is not None and abs(c["d30"]) < 0.3]
     vals = [c["impl"] for c in cands if c["impl"]] + [c["mkt"] for c in cands if c["mkt"]]
     scale = max(40, int(np.ceil(max(vals) / 10.0) * 10)) if vals else 50
@@ -322,6 +555,9 @@ def build():
         "candidates": cands,
         "decomp": decomp,
         "stables": stables,
+        "hist": hist, "top5": top5, "events": events, "duels": duels,
+        "used": pollsf.get("used", []),
+        "ifop": {NAMES[k][0]: v["note"] for k, v in ifop.items()},
     }
     os.makedirs(SITE, exist_ok=True)
     # Données INLINE dans une page unique auto-cohérente (pas de data.js séparé = pas de cache mixte).

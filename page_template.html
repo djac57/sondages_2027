@@ -131,6 +131,43 @@ svg{display:block;width:100%;height:auto}
 @media (max-width:620px){.mrow{grid-template-columns:150px 1fr 36px;gap:8px;font-size:12px}}
 @media (max-width:620px){.flowrow{grid-template-columns:110px 1fr;gap:9px} .fseg{font-size:10px;padding:0 4px}}
 
+/* ---- S → M lisible, fiche candidat ---- */
+.hint{cursor:help;border-bottom:1px dotted var(--ink-faint)}
+.drow{cursor:pointer}
+.drow:hover{background:var(--line-soft)}
+.drow:focus-visible{outline:2px solid var(--bleu);outline-offset:2px}
+.drow[aria-expanded="true"]{background:var(--line-soft)}
+.fiche{border-top:1px solid var(--line-soft);background:var(--surface);padding:12px 12px 14px;margin:0 0 4px;
+  border-left:3px solid var(--fc,var(--ink-faint));font-size:12.5px;color:var(--ink-soft)}
+.fiche[hidden]{display:none}
+.fiche .fl{margin:0 0 4px} .fiche .fl b{color:var(--ink);font-family:var(--fd);font-weight:700}
+.fiche .fh{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin:12px 0 4px}
+.fiche .fx{display:flex;flex-wrap:wrap;gap:3px 14px}
+.fiche .fx span{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.fiche .fx i{width:8px;height:8px;border-radius:2px;flex:none}
+.fiche .fx b{color:var(--ink);font-family:var(--fd)}
+.fiche .mz{font-size:10px;font-weight:700;color:var(--ink-faint);border:1px solid var(--line);border-radius:2px;padding:0 3px}
+/* ---- courbe clé ---- */
+.lc text{font-family:var(--fu);font-size:10.5px;fill:var(--ink-faint)}
+.lc .lab{font-size:11.5px;font-weight:600;fill:var(--ink)}
+.lc .gl{stroke:var(--line-soft);stroke-width:1}
+.lc .xh{stroke:var(--ink-faint);stroke-width:1}
+.lc .ev{fill:var(--ink-faint)}
+.lleg{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:12px;color:var(--ink-soft)}
+.lleg span{display:inline-flex;align-items:center;gap:7px}
+.lleg i{width:16px;height:0;border-top:2.5px solid;flex:none}
+.lleg i.dash{border-top-style:dashed}
+/* ---- mesuré / inféré ---- */
+.fseg.inf{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.32) 0 2px,transparent 2px 6px)}
+.mleg{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;margin-top:14px;font-size:12px;color:var(--ink-soft)}
+.mleg span{display:inline-flex;align-items:center;gap:7px}
+.mleg i{width:22px;height:12px;border-radius:2px;background:var(--ink-soft);flex:none}
+.mleg i.inf{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.4) 0 2px,transparent 2px 6px)}
+.info{background:none;border:1px solid var(--line);color:var(--ink-faint);border-radius:50%;width:20px;height:20px;
+  font:600 11px/1 var(--fd);cursor:help;padding:0}
+.xlink{color:var(--bleu);text-decoration:none;border-bottom:1px solid var(--line)}
+.xlink:hover{border-color:var(--bleu)}
+
 footer{border-top:1px solid var(--line);margin-top:34px;padding:16px 0 30px;
   font-size:11.5px;color:var(--ink-faint);line-height:1.6}
 footer b{color:var(--ink-soft);font-weight:600}
@@ -170,7 +207,7 @@ footer b{color:var(--ink-soft);font-weight:600}
   <p class="eyebrow">La différence</p>
   <h2 class="phead">Probabilité de victoire <span>— ce qu'impliquent les sondages vs ce que paie le marché</span></h2>
   <div class="hr"></div>
-  <div class="axis"><span></span><div class="axticks" id="axticks"></div><span style="text-align:right">S&nbsp;→&nbsp;M</span><span style="text-align:right">30&nbsp;j</span></div>
+  <div class="axis"><span></span><div class="axticks" id="axticks"></div><span style="text-align:right"><span class="hint" id="smHead" tabindex="0">S&nbsp;→&nbsp;M</span></span><span style="text-align:right">30&nbsp;j</span></div>
   <div id="dumb"></div>
   <div class="dleg">
     <span class="it"><span class="r1"></span> Sondages — proba implicite (%)</span>
@@ -179,16 +216,24 @@ footer b{color:var(--ink-soft);font-weight:600}
   </div>
 </section>
 
+<section aria-label="Le marché dans le temps" id="curveSec">
+  <p class="eyebrow">Le marché</p>
+  <h2 class="phead">Dans le temps <span>— Polymarket, 5 premiers</span></h2>
+  <div class="hr"></div>
+  <div id="curve"></div>
+  <div class="lleg" id="curveLeg"></div>
+</section>
+
 <section aria-label="Où vont les voix">
   <p class="eyebrow">Qui prend à qui</p>
-  <h2 class="phead">Où vont les voix <span>— décomposition des mouvements du marché, 30 jours</span></h2>
+  <h2 class="phead">Où vont les voix <span>— mouvements du marché, 30 jours</span></h2>
   <div class="hr"></div>
   <div id="flows"></div>
-  <p class="fnote">Flux <b>nets</b> estimés : le gain de chaque candidat est réparti entre ceux qui reculent et l'<b>abstention</b>, selon un graphe d'<b>affinités</b> entre électorats (seules les paires plausibles portent du flux). L'<b>abstention</b> n'apparaît que pour le résidu net que donne le marché (mobilisation/démobilisation). Un report brut masqué par un gain net (ex. Le Pen cède à Lisnard tout en gagnant ailleurs) n'est pas identifiable.</p>
+  <div class="mleg"><span id="legM"><i></i>reports IFOP (mesuré)</span><span id="legI"><i class="inf"></i>inféré</span><button class="info" id="flowInfo" type="button" aria-label="Méthode">i</button></div>
   <p class="fnote" id="stablesNote"></p>
 </section>
 
-<footer><b>Sondages</b> : moyenne des <span id="npolls">—</span> derniers sondages du 1er tour (Wikipédia). <b>Marché</b> : Polymarket, proba de victoire (event <i>Next French Presidential Election</i>), tendance = variation sur 30 j. <b>Proba implicite</b> : simulation Monte-Carlo (200 000 tirages) du 1er tour (parts sondagières + incertitude) puis du 2nd tour (duels, avec plafond « front républicain » pour l'extrême et faiblesse de duel de LFI — hypothèses assumées). <b>Transferts</b> : flux nets estimés par un graphe d'affinités entre électorats (modèle). On compare sondages et marché sans recopier personne. Mise à jour automatique quotidienne · modèle <b>539</b> · code ouvert sur GitHub.</footer>
+<footer><b>Sondages</b> : moyenne de <span id="npolls">—</span> sondages du 1er tour testant la même hypothèse de casting (Wikipédia). <b>Marché</b> : Polymarket (event <i>Next French Presidential Election</i>). <b>Proba implicite</b> : Monte-Carlo 1er puis 2nd tour (hypothèses assumées). <b>Transferts</b> : reports IFOP mesurés pour Attal, Philippe, Lisnard, Retailleau ; le reste inféré par affinités entre électorats. Mise à jour quotidienne · modèle <b>539</b> · code ouvert sur GitHub · <a class="xlink" href="https://djac57.github.io/bet_vision/">Baromètre des paris ↗</a></footer>
 </div>
 <div id="tip" role="status" aria-live="polite"></div>
 
@@ -199,7 +244,19 @@ const col=k=>'var('+(BL[k]||'--ink-faint')+')';
 const D=window.DATA||{candidates:[],movers:[],scale:60,asof:{},tour1:'',n_polls:'—'};
 const C=D.candidates||[];
 const MAX=D.scale||60, pos=v=>Math.max(0,Math.min(100,v/MAX*100)), f=v=>v>=10?String(Math.round(v)):v.toFixed(1);
-const pct=v=>v==null?'n/d':f(v);
+const fr=v=>(v>=10?String(Math.round(v)):v.toFixed(1)).replace('.',',');
+const pct=v=>v==null?'n/d':fr(v);
+const P=v=>v==null?'n/d':fr(v)+' %';
+const WHY={untested:'non testé par les sondeurs (absent de l’hypothèse de référence)',
+  low:'moins de 1 % au 1er tour : hors simulation'};
+const dFmt=(iso,o)=>{try{return new Date(iso+'T12:00:00Z').toLocaleDateString('fr-FR',o||{day:'numeric',month:'short',year:'numeric'});}catch(e){return iso;}};
+const BYID={};C.forEach(c=>BYID[c.id]=c);
+/* même bloc = même couleur : le 2e d'un bloc est en pointillés (identité jamais par la seule couleur) */
+const DASH={};{const seen={};C.forEach(c=>{DASH[c.id]=!!seen[c.bloc];seen[c.bloc]=1;});}
+function smLine(c){
+  return `Victoire — sondages <b>${P(c.impl)}</b> · marché <span class="tp">${P(c.mkt)}</span>`
+    +(c.impl==null&&c.why?`<br><span class="sp">sondages n/d : ${WHY[c.why]}</span>`:'');
+}
 /* en-tête & pied dynamiques */
 document.getElementById('asofMkt').textContent=(D.asof&&D.asof.market)||'—';
 document.getElementById('asofPolls').textContent=(D.asof&&D.asof.polls)||'—';
@@ -216,8 +273,8 @@ C.forEach(c=>{
   const hasI=c.impl!=null, hasM=c.mkt!=null;
   const lo=(hasI&&hasM)?Math.min(c.impl,c.mkt):null, hi=(hasI&&hasM)?Math.max(c.impl,c.mkt):null;
   const tA=c.d30==null?`<span class="flat" title="tendance inconnue">?</span>`
-    :c.d30>0.3?`<span class="up">▲&nbsp;+${c.d30.toFixed(1)}</span>`
-    :c.d30<-0.3?`<span class="down">▼&nbsp;${c.d30.toFixed(1)}</span>`:`<span class="flat">–</span>`;
+    :c.d30>0.3?`<span class="up">▲&nbsp;+${c.d30.toFixed(1).replace('.',',')}</span>`
+    :c.d30<-0.3?`<span class="down">▼&nbsp;${c.d30.toFixed(1).replace('.',',').replace('-','−')}</span>`:`<span class="flat">–</span>`;
   const conn=(lo!=null)?`<div class="dconn" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)}%;background:${col(c.bloc)}"></div>`:'';
   const dotI=hasI?`<div class="ddot poll" style="left:${pos(c.impl)}%;border-color:${col(c.bloc)}"></div>`:'';
   const dotM=hasM?`<div class="ddot mkt" style="left:${pos(c.mkt)}%;background:${col(c.bloc)}"></div>`:'';
@@ -230,12 +287,85 @@ C.forEach(c=>{
     <div class="dvals"><span class="p">${pct(c.impl)}</span><span class="a">→</span><span class="m">${pct(c.mkt)}</span></div>
     <div class="dtrend">${tA}</div>`;
   dumb.appendChild(r);
-  const l1=(c.poll!=null?`1er tour : <span class="sp">${c.poll.toFixed(1)} %</span>`:'<span class="sp">non sondé</span>')
-    +(c.reach!=null?` · P(2nd tour) : <span class="sp">${c.reach.toFixed(0)} %</span>`:'');
-  bindTip(r,`<b>${c.full}</b> — ${c.pty}<br>${l1}<br>
-    Proba victoire — sondages : <b>${c.impl!=null?c.impl.toFixed(1)+' %':'n/d'}</b> · marché : <span class="tp">${c.mkt!=null?c.mkt.toFixed(1)+' %':'n/d'}</span><br>
-    Tendance marché 30 j : ${c.d30==null?'inconnue':(c.d30>0?'+':'')+c.d30.toFixed(1)+' pt'}`);
+  const fi=document.createElement('div');fi.className='fiche';fi.hidden=true;fi.id='fiche-'+c.id.replace(/\W/g,'');
+  fi.style.setProperty('--fc',col(c.bloc));dumb.appendChild(fi);
+  r.tabIndex=0;r.setAttribute('role','button');r.setAttribute('aria-expanded','false');r.setAttribute('aria-controls',fi.id);
+  const l1=(c.poll!=null?`1er tour : <span class="sp">${fr(c.poll)} %</span>`:'')
+    +(c.reach!=null?` · 2nd tour : <span class="sp">${fr(c.reach)} %</span>`:'');
+  bindTip(r,`<b>${c.full}</b><br>${smLine(c)}${l1?'<br>'+l1:''}`,{touch:false});
+  const toggle=()=>{const open=fi.hidden;fi.hidden=!open;r.setAttribute('aria-expanded',String(open));
+    tip.style.opacity='0';if(open)fiche(c,fi);};
+  r.addEventListener('click',toggle);
+  r.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}});
 });
+bindTip(document.getElementById('smHead'),'<b>S</b> = probabilité de victoire impliquée par les sondages (modèle 539)<br><b>M</b> = probabilité du marché (Polymarket)<br><span class="sp">toucher une ligne : sa fiche</span>');
+
+/* ===== fiche candidat (au toucher / clic) ===== */
+function fiche(c,el){
+  const dec=(D.decomp||[]).find(x=>x.id===c.id);
+  let h=`<p class="fl">${smLine(c).replace('class="tp"','')}</p>`;
+  if(c.praw!=null)h+=`<p class="fl">1er tour <b>${fr(c.praw)} %</b> (moy. ${D.n_polls} sondages)${c.reach!=null?` · qualifié au 2nd tour <b>${fr(c.reach)} %</b>`:''}</p>`;
+  if(D.hist&&D.hist[c.id])h+=`<p class="fh">Marché</p><div class="fchart"></div>`;
+  if(dec){
+    h+=`<p class="fh">${dec.gain?'D’où vient son gain':'Où part son recul'} · 30 j · ${dec.gain?'+':'−'}${fr(Math.abs(dec.d))} pt</p><div class="fx">`
+      +dec.parts.map(p=>`<span><i style="background:${col(p.bloc)}"></i>${p.name} <b>${fr(p.v)}</b>${p.m?' <span class="mz" title="report IFOP mesuré">IFOP</span>':''}</span>`).join('')+'</div>';
+  }
+  const du=(D.duels||[]).filter(x=>x.a===c.id||x.b===c.id);
+  if(du.length){
+    h+=`<p class="fh">Duels de 2nd tour · sondages</p><div class="fx">`+du.map(x=>{const me=x.a===c.id;
+      return `<span>vs ${me?x.nb:x.na} <b>${fr(me?x.va:x.vb)}–${fr(me?x.vb:x.va)}</b> <span style="color:var(--ink-faint)">(${x.n} sond., dernier ${x.last})</span></span>`;}).join('')+'</div>';
+  }
+  el.innerHTML=h;
+  const fc=el.querySelector('.fchart');if(fc)lineChart(fc,[c.id],{h:150,labels:false});
+}
+
+/* ===== courbe clé : proba de marché dans le temps ===== */
+function niceMax(v){const s=v>40?10:v>15?5:v>6?2:1;return Math.max(s,Math.ceil(v/s)*s);}
+function lineChart(el,ids,o){
+  o=o||{};const H=o.h||240,labels=o.labels!==false;
+  const W=Math.max(280,el.clientWidth||600),pl=30,pr=labels?84:10,pt=10,pb=24;
+  const S=ids.map(id=>({id,c:BYID[id],pts:((D.hist||{})[id]||[]).map(([d,p])=>[Date.parse(d+'T12:00:00Z'),p,d])})).filter(s=>s.c&&s.pts.length>1);
+  if(!S.length){el.innerHTML='';return;}
+  let t0=Infinity,t1=-Infinity,ym=0;S.forEach(s=>s.pts.forEach(p=>{t0=Math.min(t0,p[0]);t1=Math.max(t1,p[0]);ym=Math.max(ym,p[1]);}));
+  ym=niceMax(ym);const X=t=>pl+(t-t0)/((t1-t0)||1)*(W-pl-pr),Y=v=>pt+(1-v/ym)*(H-pt-pb);
+  const step=ym>40?20:ym>15?5:ym>6?2:1;let g='';
+  for(let v=0;v<=ym+1e-9;v+=step)g+=`<line class="gl" x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${pl-5}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`;
+  const span=(t1-t0)/864e5,nt=W<420?3:5;
+  for(let i=0;i<nt;i++){const t=t0+(t1-t0)*i/(nt-1),iso=new Date(t).toISOString().slice(0,10);
+    g+=`<text x="${X(t)}" y="${H-6}" text-anchor="${i===0?'start':i===nt-1?'end':'middle'}">${dFmt(iso,span>150?{month:'short',year:'2-digit'}:{day:'numeric',month:'short'})}</text>`;}
+  let lines='';S.forEach(s=>{lines+=`<polyline points="${s.pts.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="${col(s.c.bloc)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${DASH[s.id]?' stroke-dasharray="5 3"':''}/>`;});
+  let labs='';
+  if(labels){const L=S.map(s=>{const p=s.pts[s.pts.length-1];return {s,y:Y(p[1]),v:p[1]};}).sort((a,b)=>a.y-b.y);
+    for(let i=1;i<L.length;i++)if(L[i].y-L[i-1].y<13)L[i].y=L[i-1].y+13;
+    const over=L.length?L[L.length-1].y-(H-pb):0;if(over>0)L.forEach(l=>l.y-=over);
+    L.forEach(l=>{labs+=`<text class="lab" x="${W-pr+6}" y="${l.y+4}">${NAMEOF(l.s.c)} ${fr(l.v)}</text>`;});}
+  const ev=(o.events||[]).filter(e=>{const t=Date.parse(e.d+'T12:00:00Z');return t>=t0&&t<=t1;});
+  let evs='';ev.forEach((e,i)=>{const x=X(Date.parse(e.d+'T12:00:00Z'));evs+=`<path class="ev" data-i="${i}" d="M${x-4},${H-pb+1} L${x+4},${H-pb+1} L${x},${H-pb-6}Z"/>`;});
+  el.innerHTML=`<svg class="lc" viewBox="0 0 ${W} ${H}" role="img" aria-label="Probabilité de marché dans le temps">${g}${lines}${labs}
+    <line class="xh" id="xh" x1="0" x2="0" y1="${pt}" y2="${H-pb}" style="opacity:0"/><rect x="${pl}" y="0" width="${W-pl-pr}" height="${H-pb-8}" fill="transparent" class="hov"/>${evs}</svg>`;
+  const svg=el.querySelector('svg'),xh=svg.querySelector('#xh'),hov=svg.querySelector('.hov');
+  const days=[...new Set(S.flatMap(s=>s.pts.map(p=>p[0])))].sort((a,b)=>a-b);
+  const at=ev2=>{const r=svg.getBoundingClientRect(),e=ev2.touches?ev2.touches[0]:ev2,x=(e.clientX-r.left)/r.width*W;
+    let t=days[0];for(const d of days)if(Math.abs(X(d)-x)<Math.abs(X(t)-x))t=d;return {t,e};};
+  const show=ev2=>{const {t,e}=at(ev2);xh.setAttribute('x1',X(t));xh.setAttribute('x2',X(t));xh.style.opacity='1';
+    const iso=new Date(t).toISOString().slice(0,10);
+    const rows=S.map(s=>{const p=s.pts.find(q=>q[0]===t);return p?[s,p[1]]:null;}).filter(Boolean).sort((a,b)=>b[1]-a[1]);
+    const evh=ev.filter(x=>x.d===iso).map(x=>`<br><span class="sp">${x.t}</span>`).join('');
+    tipAt(`<b>${dFmt(iso)}</b>`+rows.map(([s,v])=>`<br>${NAMEOF(s.c)} <span class="tp">${fr(v)} %</span>`).join('')+evh,e);};
+  const hide=()=>{xh.style.opacity='0';tip.style.opacity='0';};
+  hov.addEventListener('mousemove',show);hov.addEventListener('mouseleave',hide);
+  hov.addEventListener('touchstart',e=>{e.stopPropagation();show(e);},{passive:true});hov.addEventListener('touchmove',show,{passive:true});
+  svg.querySelectorAll('.ev').forEach(p=>bindTip(p,`<b>${dFmt(ev[+p.dataset.i].d)}</b><br>${ev[+p.dataset.i].t}<br><span class="sp">source : Wikipédia (liste des sondages)</span>`));
+}
+const NAMEOF=c=>c.id==='le pen'?'Le Pen':c.full.split(' ').slice(-1)[0];
+function drawCurve(){
+  const el=document.getElementById('curve'),ids=D.top5||[];
+  if(!ids.length||!D.hist){document.getElementById('curveSec').hidden=true;return;}
+  /* événements datés (Wikipédia) : seulement ceux qui nomment un candidat tracé */
+  const nm=ids.filter(id=>BYID[id]).map(id=>NAMEOF(BYID[id]));
+  lineChart(el,ids,{h:innerWidth<620?220:260,events:(D.events||[]).filter(e=>nm.some(n=>e.t.includes(n)))});
+  document.getElementById('curveLeg').innerHTML=ids.filter(id=>BYID[id]).map(id=>`<span><i class="${DASH[id]?'dash':''}" style="border-color:${col(BYID[id].bloc)}"></i>${BYID[id].full}</span>`).join('');
+}
 
 /* ===== Où vont les voix : décomposition par affinités (window.DATA.decomp) ===== */
 const flowsEl=document.getElementById('flows');
@@ -246,14 +376,21 @@ const unit=100/(maxGain+maxLoss), zero=maxLoss*unit;
 DEC.forEach(it=>{
   const row=document.createElement('div');row.className='flowrow';
   const tot=it.parts.reduce((a,p)=>a+p.v,0)||1, gain=it.gain, w=Math.abs(it.d)*unit, left=gain?zero:zero-w;
-  const segs=it.parts.map(p=>`<div class="fseg" data-full="${p.name}" data-short="${p.short}" data-tip="${p.v.toFixed(1)} pt ${gain?'←':'→'} ${p.name}" style="width:${p.v/tot*100}%;background:${col(p.bloc)}">${p.name}</div>`).join('');
-  row.innerHTML=`<div class="glab"><i style="background:${col(it.bloc)}"></i>${it.who}<span class="gd" style="color:var(--${gain?'up':'down'})">${gain?'+':''}${it.d.toFixed(1)} pt</span></div>
+  const tipOf=p=>{const dest=gain?it.who:p.name;
+    return `<b>${fr(p.v)} pt</b> ${gain?'←':'→'} ${p.name}<br>`+(p.m
+      ?`<span class="tp">report IFOP mesuré</span> : ${p.pct} % des électeurs de ${p.of} iraient à ${dest} s'il n'était pas candidat${/Attal pas candidat/.test(p.note||'')?' (hypothèse sans Attal)':''}<br><span class="sp">volume en points : modèle</span>`
+      :`<span class="sp">inféré (affinités entre électorats)</span>`);};
+  const segs=it.parts.map((p,i)=>`<div class="fseg${p.m?'':' inf'}" data-i="${i}" data-full="${p.name}" data-short="${p.short}" style="width:${p.v/tot*100}%;background-color:${col(p.bloc)}">${p.name}</div>`).join('');
+  row.innerHTML=`<div class="glab"><i style="background:${col(it.bloc)}"></i>${it.who}<span class="gd" style="color:var(--${gain?'up':'down'})">${gain?'+':'−'}${fr(Math.abs(it.d))} pt</span></div>
     <div class="fbar" style="--zero:${zero}%"><div class="fstack ${gain?'pos':'neg'}" style="left:${left}%;width:${w}%">${segs}</div></div>`;
   flowsEl.appendChild(row);
-  row.querySelectorAll('.fseg').forEach(s=>bindTip(s,s.dataset.tip));
+  row.querySelectorAll('.fseg').forEach(s=>bindTip(s,tipOf(it.parts[+s.dataset.i])));
 });
+bindTip(document.getElementById('legM'),'Reports <b>mesurés</b> par IFOP (sondage, hypothèses centre/droite) : où vont les électeurs d’Attal, Philippe, Lisnard ou Retailleau s’il n’est pas candidat. Ils fixent la clé de répartition de ces quatre candidats.');
+bindTip(document.getElementById('legI'),'Flux <b>inférés</b> : graphe d’affinités entre électorats (modèle 539).');
+bindTip(document.getElementById('flowInfo'),'Flux <b>nets</b> : le gain de chaque candidat sur 30 j est réparti entre ceux qui reculent et l’abstention (résidu net seulement). Un report brut masqué par un gain net n’est pas identifiable.');
 const stEl=document.getElementById('stablesNote');
-if(stEl&&D.stables&&D.stables.length)stEl.textContent='Stables sur 30 j (ni gain ni perte nette sur le marché) : '+D.stables.join(', ')+'.';
+if(stEl&&D.stables&&D.stables.length)stEl.textContent='Stables sur 30 j : '+D.stables.join(', ')+'.';
 function fitLabels(){flowsEl.querySelectorAll('.fseg').forEach(el=>{el.textContent=el.dataset.full;
   if(el.scrollWidth-el.clientWidth>1){el.textContent=el.dataset.short; if(el.scrollWidth-el.clientWidth>1)el.textContent='';}});}
 fitLabels();
@@ -262,18 +399,27 @@ addEventListener('resize',fitLabels);
 
 /* ===== infobulle & thème ===== */
 const tip=document.getElementById('tip');
-function bindTip(node,html){
-  const show=ev=>{tip.innerHTML=html;tip.style.opacity='1';move(ev);};
-  const move=ev=>{const e=ev.touches?ev.touches[0]:ev;let x=e.clientX+14,y=e.clientY+16;
-    const b=tip.getBoundingClientRect();
-    if(x+b.width>innerWidth-8)x=e.clientX-b.width-14;
-    if(y+b.height>innerHeight-8)y=e.clientY-b.height-16;
-    tip.style.left=x+'px';tip.style.top=y+'px';};
+function placeTip(e){let x=e.clientX+14,y=e.clientY+16;
+  const b=tip.getBoundingClientRect();
+  if(x+b.width>innerWidth-8)x=Math.max(8,e.clientX-b.width-14);
+  if(y+b.height>innerHeight-8)y=Math.max(8,e.clientY-b.height-16);
+  tip.style.left=x+'px';tip.style.top=y+'px';}
+function tipAt(html,e){tip.innerHTML=html;tip.style.opacity='1';placeTip(e);}
+function bindTip(node,html,o){
+  if(!node)return;
+  const show=ev=>tipAt(html,ev.touches?ev.touches[0]:ev);
+  const move=ev=>placeTip(ev.touches?ev.touches[0]:ev);
   const hide=()=>{tip.style.opacity='0';};
   node.addEventListener('mouseenter',show);node.addEventListener('mousemove',move);
   node.addEventListener('mouseleave',hide);
-  node.addEventListener('touchstart',show,{passive:true});node.addEventListener('touchend',hide);
+  if(!o||o.touch!==false){   /* au toucher : l'infobulle reste visible jusqu'au prochain toucher ailleurs */
+    node.addEventListener('touchstart',ev=>{ev.stopPropagation();show(ev);},{passive:true});}
+  if(node.tagName==='SPAN'||node.tagName==='BUTTON'){node.addEventListener('focus',()=>{const r=node.getBoundingClientRect();tipAt(html,{clientX:r.left,clientY:r.bottom});});node.addEventListener('blur',hide);}
 }
+document.addEventListener('touchstart',()=>{tip.style.opacity='0';},{passive:true});
+drawCurve();
+{let rw=innerWidth;addEventListener('resize',()=>{if(Math.abs(innerWidth-rw)<40)return;rw=innerWidth;drawCurve();
+  document.querySelectorAll('.fiche:not([hidden])').forEach(fi=>{const c=C.find(x=>'fiche-'+x.id.replace(/\W/g,'')===fi.id);if(c)fiche(c,fi);});});}
 let forced=null;
 document.getElementById('themeBtn').addEventListener('click',()=>{
   const sys=matchMedia('(prefers-color-scheme:dark)').matches;

@@ -1,32 +1,267 @@
 {
  "fetched": "2026-11-18",
- "n_polls": 16,
+ "n_polls": 8,
  "polls": {
-  "arthaud": 0.62,
-  "melenchon": 18.56,
-  "roussel": 2.16,
-  "tondelier": 3.35,
-  "glucksmann": 11.22,
-  "attal": 6.39,
-  "philippe": 11.83,
-  "lisnard": 9.77,
-  "retailleau": 5.86,
-  "dupont-aignan": 2.12,
-  "le pen": 33.78,
-  "zemmour": 3.44
+  "arthaud": 0.59,
+  "melenchon": 17.25,
+  "roussel": 1.62,
+  "tondelier": 2.78,
+  "glucksmann": 10.0,
+  "attal": 3.91,
+  "philippe": 10.0,
+  "lisnard": 8.19,
+  "retailleau": 4.62,
+  "dupont-aignan": 1.69,
+  "le pen": 32.19,
+  "zemmour": 3.0
  },
  "n": {
-  "arthaud": 16,
-  "melenchon": 16,
-  "roussel": 16,
-  "tondelier": 13,
-  "glucksmann": 16,
-  "attal": 9,
-  "philippe": 12,
-  "lisnard": 11,
-  "retailleau": 14,
-  "dupont-aignan": 16,
-  "le pen": 16,
-  "zemmour": 16
- }
+  "arthaud": 8,
+  "melenchon": 8,
+  "roussel": 8,
+  "tondelier": 8,
+  "glucksmann": 8,
+  "attal": 8,
+  "philippe": 8,
+  "lisnard": 8,
+  "retailleau": 8,
+  "dupont-aignan": 8,
+  "le pen": 8,
+  "zemmour": 8
+ },
+ "method": "hypothèse de casting commune à tous les sondages retenus",
+ "used": [
+  {
+   "sondeur": "YouGov",
+   "date": "12-17 novembre"
+  },
+  {
+   "sondeur": "Ifop",
+   "date": "13-16 novembre"
+  },
+  {
+   "sondeur": "Elabe",
+   "date": "12-13 novembre"
+  },
+  {
+   "sondeur": "OpinionWay",
+   "date": "10-12 novembre"
+  },
+  {
+   "sondeur": "Opinionway",
+   "date": "9-10 novembre"
+  },
+  {
+   "sondeur": "Cluster17",
+   "date": "9-10 novembre"
+  },
+  {
+   "sondeur": "Ifop",
+   "date": "27-29 octobre"
+  },
+  {
+   "sondeur": "Ifop",
+   "date": "17-19 octobre"
+  }
+ ],
+ "duels": [
+  {
+   "a": "attal",
+   "b": "le pen",
+   "va": 43.8,
+   "vb": 56.2,
+   "n": 5,
+   "last": "YouGov 12-17 novembre 2026"
+  },
+  {
+   "a": "glucksmann",
+   "b": "le pen",
+   "va": 42.6,
+   "vb": 57.4,
+   "n": 5,
+   "last": "YouGov 12-17 novembre 2026"
+  },
+  {
+   "a": "hollande",
+   "b": "le pen",
+   "va": 44.0,
+   "vb": 56.0,
+   "n": 4,
+   "last": "Ifop 17-19 octobre 2026"
+  },
+  {
+   "a": "melenchon",
+   "b": "le pen",
+   "va": 32.7,
+   "vb": 67.3,
+   "n": 5,
+   "last": "YouGov 12-17 novembre 2026"
+  },
+  {
+   "a": "philippe",
+   "b": "le pen",
+   "va": 44.2,
+   "vb": 55.8,
+   "n": 5,
+   "last": "YouGov 12-17 novembre 2026"
+  },
+  {
+   "a": "retailleau",
+   "b": "le pen",
+   "va": 43.0,
+   "vb": 57.0,
+   "n": 3,
+   "last": "Ifop 24-25 août 2026"
+  },
+  {
+   "a": "melenchon",
+   "b": "philippe",
+   "va": 37.3,
+   "vb": 62.7,
+   "n": 3,
+   "last": "YouGov 12-17 novembre 2026"
+  },
+  {
+   "a": "attal",
+   "b": "bardella",
+   "va": 46.0,
+   "vb": 54.0,
+   "n": 4,
+   "last": "Harris 25-27 mai 2026"
+  },
+  {
+   "a": "glucksmann",
+   "b": "bardella",
+   "va": 41.8,
+   "vb": 58.2,
+   "n": 2,
+   "last": "Elabe 25-27 mars 2026"
+  },
+  {
+   "a": "melenchon",
+   "b": "bardella",
+   "va": 29.9,
+   "vb": 70.1,
+   "n": 4,
+   "last": "Harris 25-27 mai 2026"
+  },
+  {
+   "a": "philippe",
+   "b": "bardella",
+   "va": 48.9,
+   "vb": 51.1,
+   "n": 5,
+   "last": "Harris 25-27 mai 2026"
+  },
+  {
+   "a": "retailleau",
+   "b": "bardella",
+   "va": 44.5,
+   "vb": 55.5,
+   "n": 2,
+   "last": "Elabe 25-27 mars 2026"
+  }
+ ],
+ "events": [
+  {
+   "d": "2024-09-03",
+   "t": "Édouard Philippe, président d'Horizons (HOR), se déclare candidat (3 septembre 2024)."
+  },
+  {
+   "d": "2025-03-31",
+   "t": "Marine Le Pen est condamnée à une peine d'inéligibilité de 5 ans avec exécution provisoire (31 mars 2025)."
+  },
+  {
+   "d": "2025-03-31",
+   "t": "Marine Le Pen est condamnée à cinq ans d'inéligibilité dans l'affaire des assistants parlementaires (31 mars 2025)."
+  },
+  {
+   "d": "2025-04-10",
+   "t": "Philippe Poutou renonce à briguer une quatrième candidature à l'élection présidentielle française (10 avril 2025)."
+  },
+  {
+   "d": "2025-05-18",
+   "t": "Bruno Retailleau est élu président des Républicains (18 mai 2025)."
+  },
+  {
+   "d": "2025-06-06",
+   "t": "Olivier Faure est réélu premier secrétaire du Parti socialiste (6 juin 2025)."
+  },
+  {
+   "d": "2025-07-02",
+   "t": "L'Après, Debout !, Les Écologistes, Génération.s et le Parti socialiste lancent le Front populaire 2027 (2 juillet 2025)."
+  },
+  {
+   "d": "2025-09-08",
+   "t": "Le gouvernement Bayrou tombe après la non-confiance de l'Assemblée Nationale (8 septembre 2025)."
+  },
+  {
+   "d": "2025-09-09",
+   "t": "Sébastien Lecornu est nommé Premier ministre (9 septembre 2025)."
+  },
+  {
+   "d": "2025-10-06",
+   "t": "Sébastien Lecornu remet sa démission à Emmanuel Macron qui l'accepte (6 octobre 2025)."
+  },
+  {
+   "d": "2025-10-10",
+   "t": "Sébastien Lecornu est à nouveau nommé Premier ministre (10 octobre 2025)."
+  },
+  {
+   "d": "2025-10-22",
+   "t": "Marine Tondelier annonce sa candidature à l'élection présidentielle de 2027 dans le cadre d'une primaire à gauche (22 octobre 2025)."
+  },
+  {
+   "d": "2025-11-15",
+   "t": "Le Front Populaire 2027 annonce l'organisation d'une primaire prévue le 11 octobre 2026 (15 novembre 2025)."
+  },
+  {
+   "d": "2025-12-08",
+   "t": "Nathalie Arthaud, porte-parole de Lutte ouvrière (LO), déclare sa candidature (8 décembre 2025)."
+  },
+  {
+   "d": "2026-04-19",
+   "t": "Bruno Retailleau est désigné candidat des Républicains (LR) par les adhérents du parti (19 avril 2026)."
+  },
+  {
+   "d": "2026-05-03",
+   "t": "Jean-Luc Mélenchon est désigné candidat de la France insoumise (LFI) par les élus du mouvement (3 mai 2026)."
+  },
+  {
+   "d": "2026-05-22",
+   "t": "Gabriel Attal, secrétaire général de Renaissance (RE), se déclare candidat (22 mai 2026)."
+  },
+  {
+   "d": "2026-07-07",
+   "t": "Marine Le Pen, cheffe de file du Rassemblement national (RN), officialise sa candidature à la suite de la réduction de sa période d'inéligibilité en appel dans l'affaire des assistants parlementaires (7 juillet 2026)."
+  },
+  {
+   "d": "2026-07-07",
+   "t": "Marine Le Pen officialise sa candidature à la suite de la réduction de sa période d'inéligibilité en appel (7 juillet 2026)."
+  },
+  {
+   "d": "2026-08-23",
+   "t": "Raphaël Glucksmann, président de Place publique (PP), officialise sa candidature et annonce sa participation à la primaire socialiste organisée en octobre (23 août 2026)."
+  },
+  {
+   "d": "2026-08-27",
+   "t": "Premier débat présidentiel rassemblant 7 candidats : Attal, Glucksmann, Le Pen, Mélenchon, Philippe, Retailleau et Tondelier (27 août 2026)."
+  },
+  {
+   "d": "2026-09-06",
+   "t": "Fabien Roussel, secrétaire général du Parti communiste français (PCF), officialise sa candidature (6 septembre 2026)."
+  },
+  {
+   "d": "2026-09-17",
+   "t": "Éric Zemmour, président de Reconquête (REC), officialise sa candidature (17 septembre 2026)."
+  },
+  {
+   "d": "2026-09-19",
+   "t": "Nicolas Dupont-Aignan, président de Debout la France (DLF), officialise sa candidature (19 septembre 2026)."
+  },
+  {
+   "d": "2026-10-11",
+   "t": "Raphaël Glucksmann, président de Place publique (PP), remporte la primaire socialiste (11 octobre 2026)."
+  }
+ ]
 }
