@@ -19,6 +19,8 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    outputs:
+      fetch: ${{ steps.fetch.outcome }}
     steps:
       - uses: actions/checkout@v4
 
@@ -30,7 +32,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Récupérer sondages (Wikipédia) + marché (Polymarket)
-        continue-on-error: true   # source externe en panne : on garde le dernier raw committé
+        id: fetch
+        continue-on-error: true   # source externe en panne : on garde le dernier raw committé (le job « verdict » met le run au rouge)
         run: python scripts/update539.py fetch
 
       - name: Construire data.js
@@ -65,3 +68,17 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+  # Le site est déployé dans tous les cas (sur le dernier raw) ; ce job met le run AU ROUGE
+  # si la récupération des sondages ou du marché a échoué.
+  verdict:
+    needs: [update, deploy]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Échec si la récupération a échoué
+        run: |
+          if [ "${{ needs.update.outputs.fetch }}" != "success" ]; then
+            echo "::error::update539.py fetch a échoué (${{ needs.update.outputs.fetch }}) — site redéployé avec les données précédentes."
+            exit 1
+          fi

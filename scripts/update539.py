@@ -4,7 +4,7 @@ fetch() : ping Polymarket (proba de victoire + delta 30 j) et les sondages 1er t
 build() : modèle implicite (Monte-Carlo 1er/2nd tour) + écrit site/data.js.
 Résilient : si une source tombe, on garde le dernier raw committé et le site se déploie quand même.
 """
-import io, json, os, sys, time, datetime, unicodedata
+import io, json, os, re, sys, time, datetime, unicodedata
 import requests, numpy as np, pandas as pd
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,6 +46,7 @@ RUNOFF = {'le pen':0.46,'bardella':0.50,'zemmour':0.30,'dupont-aignan':0.38,
 SIG_FR = 4.0          # incertitude 1er tour (points), horizon long
 N_SIM  = 200000
 POLL_RECENT = 16      # nb de sondages récents retenus pour l'agrégat (table triée récent->ancien)
+POLL_MINCOLS = 6      # nb minimal de colonnes de candidats connus pour reconnaître la table du 1er tour
 
 # étiquettes courtes pour la matrice de transferts
 NAMES = {
@@ -74,8 +75,8 @@ def affinity_flows(cands):
     par flux guidé par affinités (Sinkhorn), transbordement via le nœud Abstention.
     Limite assumée : seuls les flux NETS sont identifiables (pas les bruts)."""
     import numpy as np
-    losers  = [c for c in cands if c["d30"] <= -0.3]
-    winners = [c for c in cands if c["d30"] >=  0.3]
+    losers  = [c for c in cands if c["d30"] is not None and c["d30"] <= -0.3]   # d30 None = tendance inconnue
+    winners = [c for c in cands if c["d30"] is not None and c["d30"] >=  0.3]
     if not losers or not winners:
         return []
     S  = sum(-c["d30"] for c in losers)
@@ -131,10 +132,29 @@ def affinity_flows(cands):
 
 def _strip(s):
     return ''.join(c for c in unicodedata.normalize('NFD', str(s)) if unicodedata.category(c) != 'Mn').lower()
+# Appariement explicite, prioritaire : nom nettoyé (sans accents, minuscules) -> id, ou None pour exclure.
+ALIAS = {
+ 'jean-marie le pen': None,          # homonyme : ne doit pas aller à Marine Le Pen
+}
 def keyof(name):
+    """Nom affiché (Wikipédia « Philippe (HOR) », Polymarket « Édouard Philippe ») -> id de CAND.
+    Le nom de famille doit TERMINER le nom, en mot entier : « Philippe Poutou », « Philippe de
+    Villiers » ou « Jean-Philippe Tanguy » ne vont pas à Édouard Philippe."""
     n = _strip(name)
+    n = re.sub(r'\[[^\]]*\]|\([^)]*\)', ' ', n)     # appels de note [c], parti entre parenthèses
+    n = re.sub(r'\s+', ' ', n).strip()
+    if n in ALIAS:
+        return ALIAS[n]
     for k in CAND:
-        if k in n:
+        if n == k or n.endswith(' ' + k):
+            return k
+    return None
+def colkeyof(col):
+    """Colonne de table (éventuellement à plusieurs niveaux d'en-tête) -> id de CAND.
+    Le nom du candidat n'est pas toujours au même niveau (Wikipédia l'a déplacé le 17/11/2026)."""
+    for lvl in (col if isinstance(col, tuple) else (col,)):
+        k = keyof(lvl)
+        if k:
             return k
     return None
 def save_atomic(path, obj):
@@ -165,20 +185,28 @@ def fetch_market():
             continue
         if not pr or not toks:
             continue
-        k = keyof(m.get("groupItemTitle") or m.get("question") or "")
-        if not k:
-            continue
+        nom = m.get("groupItemTitle") or m.get("question") or ""
+        k = keyof(nom)
         yes = float(pr[0])
-        d30 = 0.0
+        if not k:
+            if yes > 0.01:   # candidat du marché absent de CAND : on le dit dès qu'il pèse plus de 1 %
+                print(f"[fetch] marché : « {nom} » absent de CAND, ignoré ({yes * 100:.1f} %)")
+            continue
+        if k in out:
+            print(f"[fetch] marché : « {nom} » apparié à '{k}' déjà pris, ignoré", file=sys.stderr)
+            continue
+        d30 = None           # None = tendance inconnue (à ne pas confondre avec 0 = stable)
         try:
             h = requests.get("https://clob.polymarket.com/prices-history",
                              params={"market": toks[0], "interval": "1m", "fidelity": 720},
                              headers=UA, timeout=30).json().get("history", [])
             if h:
                 d30 = (yes - float(h[0]["p"])) * 100
-        except Exception:
-            pass
-        out[k] = {"mkt": round(yes * 100, 2), "d30": round(d30, 2)}
+            else:
+                print(f"[fetch] marché : historique vide pour '{k}', tendance 30 j inconnue", file=sys.stderr)
+        except Exception as e:
+            print(f"[fetch] marché : historique en échec pour '{k}', tendance 30 j inconnue : {e}", file=sys.stderr)
+        out[k] = {"mkt": round(yes * 100, 2), "d30": None if d30 is None else round(d30, 2)}
     if len(out) < 3:
         raise RuntimeError("marché: trop peu de candidats, abandon")
     save_atomic(os.path.join(RAW, "market.json"),
@@ -189,14 +217,31 @@ def fetch_market():
 def fetch_polls():
     html = requests.get(WIKI, headers=UA, timeout=40).text
     tables = pd.read_html(io.StringIO(html), decimal=",", thousands="\xa0")
-    t = tables[0]
-    colkey = {}
-    for c in t.columns:
-        lvl1 = c[1] if isinstance(c, tuple) else c
-        k = keyof(lvl1)
-        if k:
-            colkey[c] = k
-    sond = [c for c in t.columns if str(c[0]).startswith("Sondeur")][0]
+    # La table est choisie par ses en-têtes, pas par sa position : la première (= la plus récente)
+    # qui a une colonne « Sondeur » et au moins POLL_MINCOLS colonnes de candidats connus.
+    t = colkey = sond = None
+    for cand_t in tables:
+        ck = {}
+        for c in cand_t.columns:
+            k = colkeyof(c)
+            if not k:
+                continue
+            if k in ck.values():
+                print(f"[fetch] sondages : colonne {c!r} appariée à '{k}' déjà pris, ignorée", file=sys.stderr)
+                continue
+            ck[c] = k
+        sd = [c for c in cand_t.columns if str(c[0] if isinstance(c, tuple) else c).startswith("Sondeur")]
+        if sd and len(ck) >= POLL_MINCOLS:
+            t, colkey, sond = cand_t, ck, sd[0]
+            break
+    if t is None:
+        raise RuntimeError(f"sondages: aucune table Wikipédia avec une colonne « Sondeur » et au moins "
+                           f"{POLL_MINCOLS} candidats connus (la page a changé de structure ?), abandon")
+    def titre(c):   # premier niveau d'en-tête qui porte un vrai libellé
+        return next((str(l) for l in (c if isinstance(c, tuple) else (c,)) if not str(l).startswith("Unnamed")), str(c))
+    libre = [c for c in t.columns if c not in colkey and c != sond]
+    print("[fetch] sondages : colonnes appariées : " + ", ".join(f"{titre(c)} -> {k}" for c, k in colkey.items()))
+    print("[fetch] sondages : colonnes non appariées : " + (", ".join(titre(c) for c in libre) or "aucune"))
     t = t[t[sond].notna() & (t[sond] != "Sondeur")]
     recent = t.head(POLL_RECENT)
     polls, n = {}, {}
@@ -248,7 +293,7 @@ def build():
     cands = []
     for k in ids:
         mkt = mk.get(k, {}).get("mkt")
-        d30 = mk.get(k, {}).get("d30", 0.0)
+        d30 = mk.get(k, {}).get("d30")      # None = inconnu (historique en échec, ou candidat hors marché)
         im = implied.get(k, {})
         poll = pa.get(k)
         if (mkt is None or mkt < 1) and (poll is None or poll < 3):
@@ -256,10 +301,10 @@ def build():
         cands.append({
             "id": k, "full": CAND[k][0], "pty": CAND[k][1], "bloc": CAND[k][2],
             "poll": im.get("first", poll), "reach": im.get("reach"),
-            "impl": im.get("impl"), "mkt": mkt, "d30": round(d30, 1),
+            "impl": im.get("impl"), "mkt": mkt, "d30": None if d30 is None else round(d30, 1),
         })
     decomp = affinity_flows(cands)
-    stables = [c["full"] for c in cands if abs(c["d30"]) < 0.3]
+    stables = [c["full"] for c in cands if c["d30"] is not None and abs(c["d30"]) < 0.3]
     vals = [c["impl"] for c in cands if c["impl"]] + [c["mkt"] for c in cands if c["mkt"]]
     scale = max(40, int(np.ceil(max(vals) / 10.0) * 10)) if vals else 50
 
@@ -292,10 +337,15 @@ def build():
 # ---------------------------------------------------------------- MAIN
 if __name__ == "__main__":
     do = sys.argv[1] if len(sys.argv) > 1 else "all"
+    echecs = []
     if do in ("all", "fetch"):
         try: fetch_market()
-        except Exception as e: print(f"[fetch] marché ECHEC (on garde le dernier) : {e}", file=sys.stderr)
+        except Exception as e:
+            echecs.append("marché"); print(f"[fetch] marché ECHEC (on garde le dernier) : {e}", file=sys.stderr)
         try: fetch_polls()
-        except Exception as e: print(f"[fetch] sondages ECHEC (on garde le dernier) : {e}", file=sys.stderr)
+        except Exception as e:
+            echecs.append("sondages"); print(f"[fetch] sondages ECHEC (on garde le dernier) : {e}", file=sys.stderr)
     if do in ("all", "build"):
         build()
+    if echecs:   # le site reste construit sur le dernier raw, mais l'échec doit se voir (code ≠ 0)
+        sys.exit(f"[fetch] ECHEC de : {', '.join(echecs)} — données précédentes conservées")

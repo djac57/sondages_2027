@@ -215,7 +215,8 @@ C.forEach(c=>{
   const r=document.createElement('div'); r.className='drow';
   const hasI=c.impl!=null, hasM=c.mkt!=null;
   const lo=(hasI&&hasM)?Math.min(c.impl,c.mkt):null, hi=(hasI&&hasM)?Math.max(c.impl,c.mkt):null;
-  const tA=c.d30>0.3?`<span class="up">▲&nbsp;+${c.d30.toFixed(1)}</span>`
+  const tA=c.d30==null?`<span class="flat" title="tendance inconnue">?</span>`
+    :c.d30>0.3?`<span class="up">▲&nbsp;+${c.d30.toFixed(1)}</span>`
     :c.d30<-0.3?`<span class="down">▼&nbsp;${c.d30.toFixed(1)}</span>`:`<span class="flat">–</span>`;
   const conn=(lo!=null)?`<div class="dconn" style="left:${pos(lo)}%;width:${pos(hi)-pos(lo)}%;background:${col(c.bloc)}"></div>`:'';
   const dotI=hasI?`<div class="ddot poll" style="left:${pos(c.impl)}%;border-color:${col(c.bloc)}"></div>`:'';
@@ -233,7 +234,7 @@ C.forEach(c=>{
     +(c.reach!=null?` · P(2nd tour) : <span class="sp">${c.reach.toFixed(0)} %</span>`:'');
   bindTip(r,`<b>${c.full}</b> — ${c.pty}<br>${l1}<br>
     Proba victoire — sondages : <b>${c.impl!=null?c.impl.toFixed(1)+' %':'n/d'}</b> · marché : <span class="tp">${c.mkt!=null?c.mkt.toFixed(1)+' %':'n/d'}</span><br>
-    Tendance marché 30 j : ${c.d30>0?'+':''}${c.d30.toFixed(1)} pt`);
+    Tendance marché 30 j : ${c.d30==null?'inconnue':(c.d30>0?'+':'')+c.d30.toFixed(1)+' pt'}`);
 });
 
 /* ===== Où vont les voix : décomposition par affinités (window.DATA.decomp) ===== */
