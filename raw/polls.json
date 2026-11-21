@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-20",
+ "fetched": "2026-11-21",
  "n_polls": 8,
  "polls": {
   "arthaud": 0.59,
@@ -9,8 +9,8 @@
   "glucksmann": 10.0,
   "attal": 3.91,
   "philippe": 10.0,
-  "lisnard": 8.19,
   "retailleau": 4.62,
+  "lisnard": 8.19,
   "dupont-aignan": 1.69,
   "le pen": 32.19,
   "zemmour": 3.0
@@ -23,8 +23,8 @@
   "glucksmann": 8,
   "attal": 8,
   "philippe": 8,
-  "lisnard": 8,
   "retailleau": 8,
+  "lisnard": 8,
   "dupont-aignan": 8,
   "le pen": 8,
   "zemmour": 8
@@ -48,7 +48,7 @@
    "date": "10-12 novembre"
   },
   {
-   "sondeur": "Opinionway",
+   "sondeur": "OpinionWay",
    "date": "9-10 novembre"
   },
   {
