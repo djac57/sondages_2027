@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-21",
+ "fetched": "2026-11-22",
  "n_polls": 8,
  "polls": {
   "arthaud": 0.59,
@@ -266,6 +266,22 @@
   {
    "d": "2026-10-11",
    "t": "Raphaël Glucksmann, président de Place publique (PP), remporte la primaire socialiste (11 octobre 2026)."
+  },
+  {
+   "d": "2026-10-14",
+   "t": "Natacha Polony officialise sa candidature (14 octobre 2026)."
+  },
+  {
+   "d": "2026-11-09",
+   "t": "Teddy Riner officialise sa candidature (9 novembre 2026)."
+  },
+  {
+   "d": "2026-11-20",
+   "t": "Dominique de Villepin, fondateur de La France humaniste (LFH), officialise sa candidature (20 novembre 2026)."
+  },
+  {
+   "d": "2026-11-21",
+   "t": "François Ruffin, président de Debout ! (D!), retire sa candidature (21 novembre 2026)."
   }
  ]
 }
