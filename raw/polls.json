@@ -1,18 +1,18 @@
 {
- "fetched": "2026-11-22",
+ "fetched": "2026-11-23",
  "n_polls": 8,
  "polls": {
-  "arthaud": 0.59,
-  "melenchon": 17.25,
-  "roussel": 1.62,
-  "tondelier": 2.78,
-  "glucksmann": 10.0,
+  "arthaud": 0.72,
+  "melenchon": 17.62,
+  "roussel": 1.5,
+  "tondelier": 2.59,
+  "glucksmann": 9.88,
   "attal": 3.91,
-  "philippe": 10.0,
-  "retailleau": 4.62,
-  "lisnard": 8.19,
-  "dupont-aignan": 1.69,
-  "le pen": 32.19,
+  "philippe": 9.62,
+  "retailleau": 4.44,
+  "lisnard": 8.88,
+  "dupont-aignan": 1.62,
+  "le pen": 31.81,
   "zemmour": 3.0
  },
  "n": {
@@ -31,6 +31,10 @@
  },
  "method": "hypothèse de casting commune à tous les sondages retenus",
  "used": [
+  {
+   "sondeur": "Harris",
+   "date": "18-19 novembre"
+  },
   {
    "sondeur": "YouGov[d]",
    "date": "12-17 novembre"
@@ -58,10 +62,6 @@
   {
    "sondeur": "Ifop",
    "date": "27-29 octobre"
-  },
-  {
-   "sondeur": "Ifop",
-   "date": "17-19 octobre"
   }
  ],
  "duels": [
@@ -92,10 +92,10 @@
   {
    "a": "melenchon",
    "b": "le pen",
-   "va": 32.7,
-   "vb": 67.3,
+   "va": 33.5,
+   "vb": 66.5,
    "n": 5,
-   "last": "YouGov 12-17 novembre 2026"
+   "last": "Harris 18-19 novembre 2026"
   },
   {
    "a": "philippe",
@@ -268,20 +268,12 @@
    "t": "Raphaël Glucksmann, président de Place publique (PP), remporte la primaire socialiste (11 octobre 2026)."
   },
   {
-   "d": "2026-10-14",
-   "t": "Natacha Polony officialise sa candidature (14 octobre 2026)."
-  },
-  {
-   "d": "2026-11-09",
-   "t": "Teddy Riner officialise sa candidature (9 novembre 2026)."
-  },
-  {
-   "d": "2026-11-20",
-   "t": "Dominique de Villepin, fondateur de La France humaniste (LFH), officialise sa candidature (20 novembre 2026)."
+   "d": "2026-11-21",
+   "t": "François Ruffin, président de Debout ! (D!), retire sa candidature (21 novembre 2026)."
   },
   {
    "d": "2026-11-21",
-   "t": "François Ruffin, président de Debout ! (D!), retire sa candidature (21 novembre 2026)."
+   "t": "François Ruffin retire sa candidature (21 novembre 2026)."
   }
  ]
 }
