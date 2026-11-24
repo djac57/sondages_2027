@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-23",
+ "fetched": "2026-11-24",
  "n_polls": 8,
  "polls": {
   "arthaud": 0.72,
@@ -266,6 +266,10 @@
   {
    "d": "2026-10-11",
    "t": "Raphaël Glucksmann, président de Place publique (PP), remporte la primaire socialiste (11 octobre 2026)."
+  },
+  {
+   "d": "2026-11-16",
+   "t": "Débat présidentiel rassemblant 5 candidats : Attal, Glucksmann, Le Pen, Mélenchon, Retailleau (16 novembre 2026)."
   },
   {
    "d": "2026-11-21",
