@@ -1,19 +1,19 @@
 {
- "fetched": "2026-11-25",
+ "fetched": "2026-11-26",
  "n_polls": 8,
  "polls": {
-  "arthaud": 0.72,
-  "melenchon": 17.62,
+  "arthaud": 0.78,
+  "melenchon": 17.38,
   "roussel": 1.5,
-  "tondelier": 2.59,
+  "tondelier": 2.34,
   "glucksmann": 9.88,
-  "attal": 3.91,
-  "philippe": 9.62,
+  "attal": 3.78,
+  "philippe": 9.44,
   "retailleau": 4.44,
-  "lisnard": 8.88,
-  "dupont-aignan": 1.62,
-  "le pen": 31.81,
-  "zemmour": 3.0
+  "lisnard": 9.5,
+  "dupont-aignan": 1.69,
+  "le pen": 31.56,
+  "zemmour": 2.81
  },
  "n": {
   "arthaud": 8,
@@ -31,6 +31,10 @@
  },
  "method": "hypothèse de casting commune à tous les sondages retenus",
  "used": [
+  {
+   "sondeur": "OpinonWay",
+   "date": "25-26 novembre"
+  },
   {
    "sondeur": "Harris",
    "date": "18-19 novembre"
@@ -58,10 +62,6 @@
   {
    "sondeur": "Cluster17",
    "date": "9-10 novembre"
-  },
-  {
-   "sondeur": "Ifop",
-   "date": "27-29 octobre"
   }
  ],
  "duels": [
