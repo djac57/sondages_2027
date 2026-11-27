@@ -1,19 +1,20 @@
 {
- "fetched": "2026-11-26",
+ "fetched": "2026-11-27",
  "n_polls": 8,
  "polls": {
-  "arthaud": 0.78,
-  "melenchon": 17.38,
-  "roussel": 1.5,
-  "tondelier": 2.34,
-  "glucksmann": 9.88,
-  "attal": 3.78,
-  "philippe": 9.44,
-  "retailleau": 4.44,
-  "lisnard": 9.5,
-  "dupont-aignan": 1.69,
-  "le pen": 31.56,
-  "zemmour": 2.81
+  "arthaud": 0.44,
+  "melenchon": 16.38,
+  "roussel": 1.75,
+  "tondelier": 2.44,
+  "glucksmann": 10.19,
+  "attal": 4.19,
+  "philippe": 9.38,
+  "villepin": 1.44,
+  "retailleau": 4.81,
+  "lisnard": 7.94,
+  "dupont-aignan": 1.62,
+  "le pen": 32.0,
+  "zemmour": 3.0
  },
  "n": {
   "arthaud": 8,
@@ -23,6 +24,7 @@
   "glucksmann": 8,
   "attal": 8,
   "philippe": 8,
+  "villepin": 8,
   "retailleau": 8,
   "lisnard": 8,
   "dupont-aignan": 8,
@@ -48,20 +50,20 @@
    "date": "13-16 novembre"
   },
   {
-   "sondeur": "Elabe",
-   "date": "12-13 novembre"
-  },
-  {
-   "sondeur": "OpinionWay",
-   "date": "10-12 novembre"
-  },
-  {
-   "sondeur": "OpinionWay",
-   "date": "9-10 novembre"
-  },
-  {
    "sondeur": "Cluster17",
    "date": "9-10 novembre"
+  },
+  {
+   "sondeur": "Ifop",
+   "date": "17-19 octobre"
+  },
+  {
+   "sondeur": "YouGov[d]",
+   "date": "12-15 octobre"
+  },
+  {
+   "sondeur": "Ifop",
+   "date": "12-14 octobre"
   }
  ],
  "duels": [
@@ -76,10 +78,10 @@
   {
    "a": "glucksmann",
    "b": "le pen",
-   "va": 42.6,
-   "vb": 57.4,
+   "va": 42.2,
+   "vb": 57.8,
    "n": 5,
-   "last": "YouGov 12-17 novembre 2026"
+   "last": "OpinonWay 25-26 novembre 2026"
   },
   {
    "a": "hollande",
@@ -90,20 +92,28 @@
    "last": "Ifop 17-19 octobre 2026"
   },
   {
+   "a": "lisnard",
+   "b": "le pen",
+   "va": 45.0,
+   "vb": 55.0,
+   "n": 1,
+   "last": "OpinonWay 25-26 novembre 2026"
+  },
+  {
    "a": "melenchon",
    "b": "le pen",
-   "va": 33.5,
-   "vb": 66.5,
+   "va": 33.3,
+   "vb": 66.7,
    "n": 5,
-   "last": "Harris 18-19 novembre 2026"
+   "last": "OpinonWay 25-26 novembre 2026"
   },
   {
    "a": "philippe",
    "b": "le pen",
-   "va": 44.2,
-   "vb": 55.8,
+   "va": 43.6,
+   "vb": 56.4,
    "n": 5,
-   "last": "YouGov 12-17 novembre 2026"
+   "last": "OpinonWay 25-26 novembre 2026"
   },
   {
    "a": "retailleau",
@@ -270,6 +280,10 @@
   {
    "d": "2026-11-16",
    "t": "Débat présidentiel rassemblant 5 candidats : Attal, Glucksmann, Le Pen, Mélenchon, Retailleau (16 novembre 2026)."
+  },
+  {
+   "d": "2026-11-20",
+   "t": "Dominique de Villepin, président de La France Humaniste, officialise sa candidature (20 novembre 2026)."
   },
   {
    "d": "2026-11-21",
